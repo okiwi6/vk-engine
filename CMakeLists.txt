@@ -1,8 +1,12 @@
 project (Vulkan1)
 
 cmake_minimum_required(VERSION 3.0)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-add_executable(vulkantest ./src/main.cpp)
+include_directories(${PROJECT_SOURCE_DIR})
+
+add_executable(vulkantest ./src/main.cpp ./src/window.cpp ./src/first_app.cpp)
 
 target_link_libraries(vulkantest -lglfw)
 target_link_libraries(vulkantest -lvulkan)

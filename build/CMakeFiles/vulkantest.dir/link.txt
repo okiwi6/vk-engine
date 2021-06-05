@@ -1,1 +1,0 @@
-/usr/bin/c++ -rdynamic CMakeFiles/vulkantest.dir/src/main.cpp.o -o vulkantest  -lglfw -lvulkan -ldl -lpthread -lX11 -lXxf86vm -lXrandr -lXi 

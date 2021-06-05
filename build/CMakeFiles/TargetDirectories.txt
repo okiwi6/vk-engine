@@ -1,3 +1,0 @@
-/home/ole/Documents/Programming/Vulkan1/build/CMakeFiles/rebuild_cache.dir
-/home/ole/Documents/Programming/Vulkan1/build/CMakeFiles/edit_cache.dir
-/home/ole/Documents/Programming/Vulkan1/build/CMakeFiles/vulkantest.dir
