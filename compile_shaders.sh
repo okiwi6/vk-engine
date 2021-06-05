@@ -1,6 +1,6 @@
 #!/bin/sh
 
-GLSLC_PATH="/home/ole/Documents/Programming/vulkan/1.2.176.1/x86_64/bin/glslc"
+GLSLC_PATH="/usr/bin/glslc"
 echo "using glslc at $GLSLC_PATH"
 
 $GLSLC_PATH shaders/simple_shader.vert -o shaders/simple_shader.vert.spv
