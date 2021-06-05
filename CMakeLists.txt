@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 include_directories(${PROJECT_SOURCE_DIR})
 
-add_executable(vulkantest ./src/main.cpp ./src/window.cpp ./src/first_app.cpp)
+add_executable(vulkantest ./src/main.cpp ./src/window.cpp ./src/first_app.cpp ./src/vke_pipeline.cpp)
 
 target_link_libraries(vulkantest -lglfw)
 target_link_libraries(vulkantest -lvulkan)
