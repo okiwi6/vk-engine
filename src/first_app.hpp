@@ -4,6 +4,11 @@
     #include "window.hpp"
     #include "vke_pipeline.hpp"
     #include "vke_device.hpp"
+    #include "vke_swap_chain.hpp"
+
+    // std
+    #include <memory>
+    #include <vector>
 
     namespace vke {
         class FirstApp {
@@ -13,12 +18,23 @@
             FirstApp();
             ~FirstApp();
 
+            FirstApp(const FirstApp&) = delete;
+            FirstApp& operator=(const FirstApp&) = delete;
+
             void run();
 
             private:
+            void createPipelineLayout();
+            void createPipeline();
+            void createCommandBuffers();
+            void drawFrame();
+
             Window vke_window;
             VkeDevice vke_device;
-            VkePipeline vke_pipeline; 
+            VkeSwapChain vke_swap_chain;
+            std::unique_ptr<VkePipeline> vke_pipeline;
+            VkPipelineLayout pipeline_layout;
+            std::vector<VkCommandBuffer> command_buffer;
         };
     }
 
