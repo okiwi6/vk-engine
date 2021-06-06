@@ -25,7 +25,6 @@ namespace vke {
             }
         }
 
-
         void Window::initWindow() {
             glfwInit();
 
@@ -36,5 +35,9 @@ namespace vke {
 
             // create window TODO
             window = glfwCreateWindow(width, height, window_name.c_str(), nullptr, nullptr);
+        }
+
+        VkExtent2D Window::getExtent() {
+            return {static_cast<uint32_t>(width), static_cast<uint32_t>(height)};
         }
 }
