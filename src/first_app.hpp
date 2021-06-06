@@ -3,18 +3,22 @@
 
     #include "window.hpp"
     #include "vke_pipeline.hpp"
+    #include "vke_device.hpp"
 
     namespace vke {
         class FirstApp {
             public:
             const int WIDTH = 800;
             const int HEIGHT = 600;
+            FirstApp();
+            ~FirstApp();
 
-           void run();
+            void run();
 
             private:
-            Window app_window{WIDTH, HEIGHT, "FirstApp", false};
-            VkePipeline vke_pipeline{"../shaders/simple_shader.vert.spv", "../shaders/simple_shader.frag.spv"};
+            Window vke_window;
+            VkeDevice vke_device;
+            VkePipeline vke_pipeline; 
         };
     }
 
