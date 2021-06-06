@@ -4,11 +4,13 @@
 #include <iostream>
 #include <stdexcept>
 
+// cmake doesnt create MakeFile, can't compile
+
 int main() {
-    vke::FirstApp* app = new vke::FirstApp();
+    vke::FirstApp app;
 
     try {
-        app->run();
+        app.run();
     } catch (const std::exception& e) {
         std::cerr << e.what() << '\n';
         return EXIT_FAILURE;
