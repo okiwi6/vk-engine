@@ -1,4 +1,5 @@
 #include "window.hpp"
+#include <stdexcept>
 
 namespace vke {
         Window::Window(int w, int h, std::string name, bool full_screen=false):
@@ -18,6 +19,12 @@ namespace vke {
         bool Window::should_close() {
             return glfwWindowShouldClose(window);
         }
+        void Window::createWindowSurface(VkInstance instance, VkSurfaceKHR * surface) {
+            if (glfwCreateWindowSurface(instance, window, nullptr, surface) != VK_SUCCESS) {
+                throw std::runtime_error("failed to create window surface");
+            }
+        }
+
 
         void Window::initWindow() {
             glfwInit();
