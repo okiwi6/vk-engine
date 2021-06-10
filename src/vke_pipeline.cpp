@@ -129,6 +129,11 @@ namespace vke {
         }
     }
 
+    void VkePipeline::bind(VkCommandBuffer command_buffer) {
+        vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphics_pipeline);
+    }
+
+
     PipelineConfigInfo VkePipeline::defaultPipelineConfigInfo(uint32_t width, uint32_t height) {
         PipelineConfigInfo config_info{};
 

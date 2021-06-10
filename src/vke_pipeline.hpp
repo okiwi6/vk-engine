@@ -39,6 +39,8 @@
 
             static PipelineConfigInfo defaultPipelineConfigInfo(uint32_t width, uint32_t height);
 
+            void bind(VkCommandBuffer command_buffer);
+
             // private
             private:
             static std::vector<char> readFile(const std::string& file_path);
