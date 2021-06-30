@@ -1,5 +1,5 @@
-#ifndef vke_devive_hpp_
-  #define vke_devive_hpp_
+#ifndef vke_device_hpp_
+  #define vke_device_hpp_
 
 #include "window.hpp"
 
