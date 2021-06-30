@@ -13,6 +13,7 @@ namespace vke {
 
             struct Vertex {
                 glm::vec2 position;
+                glm::vec3 color;
 
                 static std::vector<VkVertexInputBindingDescription> get_binding_descriptions();
                 static std::vector<VkVertexInputAttributeDescription> get_attribute_descriptions();
