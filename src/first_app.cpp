@@ -12,6 +12,7 @@ namespace vke {
         vke_device(vke_window),
         vke_swap_chain(vke_device, vke_window.getExtent())
     {
+        load_models();
         createPipelineLayout();
         createPipeline();
         createCommandBuffers();
@@ -30,6 +31,17 @@ namespace vke {
         }
 
         vkDeviceWaitIdle(vke_device.device());
+    }
+
+    void FirstApp::load_models() {
+        // create triangle
+        std::vector<VkeModel::Vertex> vertices {
+            {{0.0f, -0.5f}},
+            {{0.5f, 0.5f}},
+            {{-0.5f, 0.5f}}
+        };
+
+        vke_model = std::make_unique<VkeModel>(vke_device, vertices);
     }
 
     void FirstApp::createPipelineLayout() {
@@ -96,8 +108,9 @@ namespace vke {
             vkCmdBeginRenderPass(command_buffer[i], &render_pass_info, VK_SUBPASS_CONTENTS_INLINE);
             
             vke_pipeline->bind(command_buffer[i]);
-            // 3 vertices, 1 instance (copies), (0, 0) no offset
-            vkCmdDraw(command_buffer[i], 3, 1, 0, 0);
+            vke_model -> bind(command_buffer[i]);
+            vke_model -> draw(command_buffer[i]);
+
 
             vkCmdEndRenderPass(command_buffer[i]);
             if(vkEndCommandBuffer(command_buffer[i]) != VK_SUCCESS) {

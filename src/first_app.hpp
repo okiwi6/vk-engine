@@ -5,6 +5,7 @@
     #include "vke_pipeline.hpp"
     #include "vke_device.hpp"
     #include "vke_swap_chain.hpp"
+    #include "vke_model.hpp"
 
     // std
     #include <memory>
@@ -24,6 +25,7 @@
             void run();
 
             private:
+            void load_models();
             void createPipelineLayout();
             void createPipeline();
             void createCommandBuffers();
@@ -35,6 +37,7 @@
             std::unique_ptr<VkePipeline> vke_pipeline;
             VkPipelineLayout pipeline_layout;
             std::vector<VkCommandBuffer> command_buffer;
+            std::unique_ptr<VkeModel> vke_model;
         };
     }
 
