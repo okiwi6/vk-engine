@@ -36,9 +36,9 @@ namespace vke {
     void FirstApp::load_models() {
         // create triangle
         std::vector<VkeModel::Vertex> vertices {
-            {{0.0f, -0.5f}},
-            {{0.5f, 0.5f}},
-            {{-0.5f, 0.5f}}
+            {{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+            {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
+            {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
         };
 
         vke_model = std::make_unique<VkeModel>(vke_device, vertices);
