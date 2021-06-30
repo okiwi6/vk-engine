@@ -1,7 +1,7 @@
 #ifndef first_app_
     #define first_app_
 
-    #include "window.hpp"
+    #include "vke_window.hpp"
     #include "vke_pipeline.hpp"
     #include "vke_device.hpp"
     #include "vke_swap_chain.hpp"
@@ -31,7 +31,7 @@
             void createCommandBuffers();
             void drawFrame();
 
-            Window vke_window;
+            VkeWindow vke_window;
             VkeDevice vke_device;
             VkeSwapChain vke_swap_chain;
             std::unique_ptr<VkePipeline> vke_pipeline;

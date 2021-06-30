@@ -1,7 +1,7 @@
 #ifndef vke_device_hpp_
   #define vke_device_hpp_
 
-#include "window.hpp"
+#include "vke_window.hpp"
 
 // std lib headers
 #include <string>
@@ -31,7 +31,7 @@ class VkeDevice {
   const bool enableValidationLayers = true;
 #endif
 
-  VkeDevice(Window &window);
+  VkeDevice(VkeWindow &window);
   ~VkeDevice();
 
   // Not copyable or movable
@@ -94,7 +94,7 @@ class VkeDevice {
   VkInstance instance;
   VkDebugUtilsMessengerEXT debugMessenger;
   VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
-  Window &window;
+  VkeWindow &window;
   VkCommandPool commandPool;
 
   VkDevice device_;

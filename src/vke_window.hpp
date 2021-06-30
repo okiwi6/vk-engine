@@ -7,13 +7,13 @@
     #include <string>
 
     namespace vke {
-        class Window {
+        class VkeWindow {
             public:
-            Window(int width, int height, std::string name, bool full_screen);
-            ~Window();
+            VkeWindow(int width, int height, std::string name, bool full_screen);
+            ~VkeWindow();
 
-            Window(const Window&) = delete;
-            Window &operator=(const Window&) = delete;
+            VkeWindow(const VkeWindow&) = delete;
+            VkeWindow &operator=(const VkeWindow&) = delete;
 
             bool should_close();
 

@@ -47,7 +47,7 @@ void DestroyDebugUtilsMessengerEXT(
 }
 
 // class member functions
-VkeDevice::VkeDevice(Window& window) : window{window} {
+VkeDevice::VkeDevice(VkeWindow& window) : window{window} {
   createInstance();
   setupDebugMessenger();
   createSurface();

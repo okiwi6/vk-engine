@@ -1,8 +1,8 @@
-#include "window.hpp"
+#include "vke_window.hpp"
 #include <stdexcept>
 
 namespace vke {
-        Window::Window(int w, int h, std::string name, bool full_screen=false):
+        VkeWindow::VkeWindow(int w, int h, std::string name, bool full_screen=false):
             width(w),
             height(h),
             window_name(name),
@@ -11,21 +11,21 @@ namespace vke {
                 initWindow();
             }
 
-        Window::~Window() {
+        VkeWindow::~VkeWindow() {
             glfwDestroyWindow(window);
             glfwTerminate();
         }
 
-        bool Window::should_close() {
+        bool VkeWindow::should_close() {
             return glfwWindowShouldClose(window);
         }
-        void Window::createWindowSurface(VkInstance instance, VkSurfaceKHR * surface) {
+        void VkeWindow::createWindowSurface(VkInstance instance, VkSurfaceKHR * surface) {
             if (glfwCreateWindowSurface(instance, window, nullptr, surface) != VK_SUCCESS) {
                 throw std::runtime_error("failed to create window surface");
             }
         }
 
-        void Window::initWindow() {
+        void VkeWindow::initWindow() {
             glfwInit();
 
             // hint for vulkan
@@ -37,7 +37,7 @@ namespace vke {
             window = glfwCreateWindow(width, height, window_name.c_str(), nullptr, nullptr);
         }
 
-        VkExtent2D Window::getExtent() {
+        VkExtent2D VkeWindow::getExtent() {
             return {static_cast<uint32_t>(width), static_cast<uint32_t>(height)};
         }
 }

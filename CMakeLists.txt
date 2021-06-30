@@ -7,7 +7,7 @@ set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS};"-g")
 
 include_directories(${PROJECT_SOURCE_DIR})
 
-add_executable(vulkantest ./src/main.cpp ./src/window.cpp ./src/first_app.cpp ./src/vke_pipeline.cpp ./src/vke_device.cpp ./src/vke_swap_chain.cpp ./src/vke_model.cpp)
+add_executable(vulkantest ./src/main.cpp ./src/vke_window.cpp ./src/first_app.cpp ./src/vke_pipeline.cpp ./src/vke_device.cpp ./src/vke_swap_chain.cpp ./src/vke_model.cpp)
 
 target_link_libraries(vulkantest -lglfw)
 target_link_libraries(vulkantest -lvulkan)
