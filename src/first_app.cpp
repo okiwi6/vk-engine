@@ -5,6 +5,7 @@
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
+#include <glm/gtc/constants.hpp>
 
 // std
 #include <stdexcept>
@@ -14,20 +15,18 @@
 namespace vke {
 
     struct SimplePushConstantData {
+        // identity
+        glm::mat2 transform{1.0f};
         glm::vec2 offset;
         // alignment needed because 4 bytes expected
         alignas(16) glm::vec3 color;
     };
 
 
-    FirstApp::FirstApp() :
-        vke_window(WIDTH, HEIGHT, "FirstApp", false),
-        vke_device(vke_window)
-    {
-        load_models();
+    FirstApp::FirstApp() {
+        load_game_objects();
         createPipelineLayout();
-        recreate_swap_chain();
-        createCommandBuffers();
+        createPipeline();
     }
 
     FirstApp::~FirstApp() {
@@ -37,15 +36,22 @@ namespace vke {
 
 
     void FirstApp::run() {
-        while (!vke_window.should_close()) {
+        while (!vke_window.should_close()) {;
             glfwPollEvents();
-            drawFrame();
+
+            if (VkCommandBuffer command_buffer = vke_renderer.begin_frame()) {
+                vke_renderer.begin_swap_chain_render_pass(command_buffer);
+                render_game_objects(command_buffer);
+                vke_renderer.end_swap_chain_render_pass(command_buffer);
+                vke_renderer.end_frame();
+            }
+
         }
 
         vkDeviceWaitIdle(vke_device.device());
     }
 
-    void FirstApp::load_models() {
+    void FirstApp::load_game_objects() {
         // create triangle
         std::vector<VkeModel::Vertex> vertices {
             {{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
@@ -53,7 +59,16 @@ namespace vke {
             {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
         };
 
-        vke_model = std::make_unique<VkeModel>(vke_device, vertices);
+        auto vke_model = std::make_shared<VkeModel>(vke_device, vertices);
+        auto triangle = VkeGameObject::create_game_object();
+        triangle.model = vke_model;
+        triangle.color = {1.0f, 0.8f, 0.1f};
+        triangle.transform2d.translation.x = 0.2f;
+        triangle.transform2d.scale = {2.f, 1.f};
+        triangle.transform2d.rotation = 0.25f * glm::two_pi<float>();
+
+        game_objects.push_back(std::move(triangle));
+
     }
 
     void FirstApp::createPipelineLayout() {
@@ -77,14 +92,13 @@ namespace vke {
     }
 
     void FirstApp::createPipeline() {
-        assert(vke_swap_chain != nullptr && "Cannot create pipeline before swap chain");
         assert(pipeline_layout != nullptr && "Cannot create pipeline before pipeline layout");
 
         PipelineConfigInfo pipeline_config{};
         
         VkePipeline::defaultPipelineConfigInfo(pipeline_config);
 
-        pipeline_config.render_pass = vke_swap_chain -> getRenderPass();
+        pipeline_config.render_pass = vke_renderer.get_swap_chain_render_pass();
         pipeline_config.pipeline_layout = pipeline_layout;
         vke_pipeline = std::make_unique<VkePipeline>(
             vke_device,
@@ -94,139 +108,27 @@ namespace vke {
         );
     }
 
-    void FirstApp::createCommandBuffers() {
-        // one command buffer per frame buffer
-        command_buffer.resize(vke_swap_chain -> imageCount());
+    void FirstApp::render_game_objects(VkCommandBuffer single_command_buffer) {
+        vke_pipeline -> bind(single_command_buffer);
 
-        VkCommandBufferAllocateInfo alloc_info{};
-        alloc_info.sType  = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-        alloc_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-        alloc_info.commandPool = vke_device.getCommandPool();
-        alloc_info.commandBufferCount = static_cast<uint32_t>(command_buffer.size());
+        for(auto& obj : game_objects) {
+            obj.transform2d.rotation = glm::mod(obj.transform2d.rotation + 0.01f, glm::two_pi<float>());
 
-        if (vkAllocateCommandBuffers(vke_device.device(), &alloc_info, command_buffer.data()) != VK_SUCCESS) {
-            throw std::runtime_error("failed to allocate command buffer");
-        }
-  
-    }
+            SimplePushConstantData push{};
+            push.offset = obj.transform2d.translation;
+            push.color = obj.color;
+            push.transform = obj.transform2d.mat2();
 
-    void FirstApp::freeCommandBuffers() {
-        vkFreeCommandBuffers(vke_device.device(), vke_device.getCommandPool(), static_cast<uint32_t>(command_buffer.size()), command_buffer.data());
-        command_buffer.clear();
-    }
-
-    void FirstApp::recreate_swap_chain() {
-        auto extent = vke_window.getExtent();
-        while(extent.width == 0 || extent.height == 0) {
-            extent = vke_window.getExtent();
-            glfwWaitEvents();
-        }
-
-        vkDeviceWaitIdle(vke_device.device());
-
-        if (vke_swap_chain == nullptr) {
-            vke_swap_chain = std::make_unique<VkeSwapChain>(vke_device, extent);
-        } else {
-            vke_swap_chain = std::make_unique<VkeSwapChain>(vke_device, extent, std::move(vke_swap_chain));
-            if(vke_swap_chain -> imageCount() != command_buffer.size()) {
-                freeCommandBuffers();
-                createCommandBuffers();
-            }
-        }
-
-        // might not happen if renderpasses are compatible (optimizable)
-        createPipeline();
-    }
-
-    void FirstApp::record_command_buffer(int image_index) {
-
-        static int frame = 0;
-        frame = (frame + 1) % 10;
-
-        VkCommandBufferBeginInfo begin_info{};
-            begin_info.sType  =VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-
-            if(vkBeginCommandBuffer(command_buffer[image_index], &begin_info) != VK_SUCCESS) {
-                throw std::runtime_error("failed to begin recording command buffer");
-            }
-
-            VkRenderPassBeginInfo render_pass_info{};
-            render_pass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-            render_pass_info.renderPass = vke_swap_chain -> getRenderPass();
-            render_pass_info.framebuffer = vke_swap_chain -> getFrameBuffer(image_index);
-
-            render_pass_info.renderArea.offset = {0, 0};
-            render_pass_info.renderArea.extent = vke_swap_chain -> getSwapChainExtent();
-
-            std::array<VkClearValue, 2> clear_values{};
-            clear_values[0].color = {0.0f, 0.0f, 0.0f, 1.0f};
-            clear_values[1].depthStencil = {1.0f, 0};
-
-            render_pass_info.clearValueCount = static_cast<uint32_t>(clear_values.size());
-            render_pass_info.pClearValues = clear_values.data();
-
-            vkCmdBeginRenderPass(command_buffer[image_index], &render_pass_info, VK_SUBPASS_CONTENTS_INLINE);
-            
-            VkViewport viewport{};
-            viewport.x = 0.0f;
-            viewport.y = 0.0f;
-            viewport.width = static_cast<float>(vke_swap_chain->getSwapChainExtent().width);
-            viewport.height = static_cast<float>(vke_swap_chain->getSwapChainExtent().height);
-            viewport.minDepth = 0.0f;
-            viewport.maxDepth = 1.0f;
-            VkRect2D scissor{{0, 0}, vke_swap_chain->getSwapChainExtent()};
-            vkCmdSetViewport(command_buffer[image_index], 0, 1, &viewport);
-            vkCmdSetScissor(command_buffer[image_index], 0, 1, &scissor);
-
-
-            vke_pipeline->bind(command_buffer[image_index]);
-            vke_model -> bind(command_buffer[image_index]);
-
-            for(int j = 0; j < 4; j++) {
-                SimplePushConstantData push{};
-                push.offset = {-0.5f + frame * 0.2f, -0.4f + j * 0.2f};
-                push.color = {0.0f, 0.0f, 0.2f + 0.2f * j};
-
-                vkCmdPushConstants(
-                    command_buffer[image_index],
-                    pipeline_layout,
-                    VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-                    0,
-                    sizeof(SimplePushConstantData),
-                    &push
-                );
-                vke_model -> draw(command_buffer[image_index]);
-            }           
-
-
-            vkCmdEndRenderPass(command_buffer[image_index]);
-            if(vkEndCommandBuffer(command_buffer[image_index]) != VK_SUCCESS) {
-                throw std::runtime_error("failed to record command buffer");
-            }
-    }
-
-    void FirstApp::drawFrame() {
-        uint32_t image_index;
-        auto result = vke_swap_chain -> acquireNextImage(&image_index);
-
-        if(result == VK_ERROR_OUT_OF_DATE_KHR) {
-            recreate_swap_chain();
-            return;
-        }
-        if(result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
-            throw std::runtime_error("failed to aquire swap chain image");
-        }
-
-        record_command_buffer(image_index);
-        result = vke_swap_chain -> submitCommandBuffers(&command_buffer[image_index], &image_index);
-        if(result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || vke_window.was_window_resized()) {
-            vke_window.reset_window_resized_flag();
-            recreate_swap_chain();
-            return;
-        }
-
-        if(result != VK_SUCCESS) {
-            throw std::runtime_error("failed to present swap chain image");
+            vkCmdPushConstants(
+                single_command_buffer,
+                pipeline_layout,
+                VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+                0,
+                sizeof(SimplePushConstantData),
+                &push
+            );
+            obj.model->bind(single_command_buffer);
+            obj.model->draw(single_command_buffer);
         }
     }
 }

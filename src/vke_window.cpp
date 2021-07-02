@@ -3,11 +3,10 @@
 #include <stdexcept>
 
 namespace vke {
-        VkeWindow::VkeWindow(int w, int h, std::string name, bool full_screen=false):
+        VkeWindow::VkeWindow(int w, int h, std::string name):
             width(w),
             height(h),
-            window_name(name),
-            fullscreen(full_screen)
+            window_name(name)
             {
                 initWindow();
             }

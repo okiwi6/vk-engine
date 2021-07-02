@@ -9,7 +9,7 @@
     namespace vke {
         class VkeWindow {
             public:
-            VkeWindow(int width, int height, std::string name, bool full_screen);
+            VkeWindow(int width, int height, std::string name);
             ~VkeWindow();
 
             VkeWindow(const VkeWindow&) = delete;
@@ -30,7 +30,6 @@
             int width;
             int height;
             bool frame_buffer_resized = false;
-            const bool fullscreen;
 
             std::string window_name;
             GLFWwindow * window;
