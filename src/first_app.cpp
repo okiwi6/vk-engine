@@ -2,12 +2,24 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 
+#define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#include <glm/glm.hpp>
+
 // std
 #include <stdexcept>
 #include <vulkan/vulkan_core.h>
 #include <array>
 
 namespace vke {
+
+    struct SimplePushConstantData {
+        glm::vec2 offset;
+        // alignment needed because 4 bytes expected
+        alignas(16) glm::vec3 color;
+    };
+
+
     FirstApp::FirstApp() :
         vke_window(WIDTH, HEIGHT, "FirstApp", false),
         vke_device(vke_window)
@@ -45,12 +57,20 @@ namespace vke {
     }
 
     void FirstApp::createPipelineLayout() {
+
+        // declare command buffer push data
+        VkPushConstantRange push_constant_range{};
+        push_constant_range.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+        push_constant_range.offset = 0;
+        push_constant_range.size = sizeof(SimplePushConstantData);
+
         VkPipelineLayoutCreateInfo pipeline_layout_info{};
         pipeline_layout_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
         pipeline_layout_info.setLayoutCount = 0;
         pipeline_layout_info.pSetLayouts = nullptr;
-        pipeline_layout_info.pushConstantRangeCount = 0;
-        pipeline_layout_info.pPushConstantRanges = nullptr;
+        pipeline_layout_info.pushConstantRangeCount = 1;
+        pipeline_layout_info.pPushConstantRanges = &push_constant_range;
+
         if ( vkCreatePipelineLayout(vke_device.device(), &pipeline_layout_info, nullptr, &pipeline_layout) != VK_SUCCESS) {
             throw std::runtime_error("failed to create pipeline layout");
         }
@@ -119,6 +139,10 @@ namespace vke {
     }
 
     void FirstApp::record_command_buffer(int image_index) {
+
+        static int frame = 0;
+        frame = (frame + 1) % 10;
+
         VkCommandBufferBeginInfo begin_info{};
             begin_info.sType  =VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 
@@ -135,7 +159,7 @@ namespace vke {
             render_pass_info.renderArea.extent = vke_swap_chain -> getSwapChainExtent();
 
             std::array<VkClearValue, 2> clear_values{};
-            clear_values[0].color = {0.1f, 0.1f, 0.1f, 1.0f};
+            clear_values[0].color = {0.0f, 0.0f, 0.0f, 1.0f};
             clear_values[1].depthStencil = {1.0f, 0};
 
             render_pass_info.clearValueCount = static_cast<uint32_t>(clear_values.size());
@@ -157,7 +181,22 @@ namespace vke {
 
             vke_pipeline->bind(command_buffer[image_index]);
             vke_model -> bind(command_buffer[image_index]);
-            vke_model -> draw(command_buffer[image_index]);
+
+            for(int j = 0; j < 4; j++) {
+                SimplePushConstantData push{};
+                push.offset = {-0.5f + frame * 0.2f, -0.4f + j * 0.2f};
+                push.color = {0.0f, 0.0f, 0.2f + 0.2f * j};
+
+                vkCmdPushConstants(
+                    command_buffer[image_index],
+                    pipeline_layout,
+                    VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+                    0,
+                    sizeof(SimplePushConstantData),
+                    &push
+                );
+                vke_model -> draw(command_buffer[image_index]);
+            }           
 
 
             vkCmdEndRenderPass(command_buffer[image_index]);
