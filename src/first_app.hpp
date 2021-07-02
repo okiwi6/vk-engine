@@ -29,11 +29,14 @@
             void createPipelineLayout();
             void createPipeline();
             void createCommandBuffers();
+            void freeCommandBuffers();
             void drawFrame();
+            void recreate_swap_chain();
+            void record_command_buffer(int image_index);
 
             VkeWindow vke_window;
             VkeDevice vke_device;
-            VkeSwapChain vke_swap_chain;
+            std::unique_ptr<VkeSwapChain> vke_swap_chain;
             std::unique_ptr<VkePipeline> vke_pipeline;
             VkPipelineLayout pipeline_layout;
             std::vector<VkCommandBuffer> command_buffer;

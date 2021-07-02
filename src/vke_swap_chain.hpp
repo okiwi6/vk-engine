@@ -9,6 +9,7 @@
 // std lib headers
 #include <string>
 #include <vector>
+#include <memory>
 
 namespace vke {
 
@@ -17,6 +18,7 @@ class VkeSwapChain {
   static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 
   VkeSwapChain(VkeDevice &deviceRef, VkExtent2D windowExtent);
+  VkeSwapChain(VkeDevice &deviceRef, VkExtent2D windowExtent, std::shared_ptr<VkeSwapChain> previous);
   ~VkeSwapChain();
 
   VkeSwapChain(const VkeSwapChain &) = delete;
@@ -40,6 +42,7 @@ class VkeSwapChain {
   VkResult submitCommandBuffers(const VkCommandBuffer *buffers, uint32_t *imageIndex);
 
  private:
+  void init();
   void createSwapChain();
   void createImageViews();
   void createDepthResources();
@@ -70,6 +73,7 @@ class VkeSwapChain {
   VkExtent2D windowExtent;
 
   VkSwapchainKHR swapChain;
+  std::shared_ptr<VkeSwapChain> old_swap_chain;
 
   std::vector<VkSemaphore> imageAvailableSemaphores;
   std::vector<VkSemaphore> renderFinishedSemaphores;

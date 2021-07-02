@@ -14,6 +14,18 @@ namespace vke {
 
 VkeSwapChain::VkeSwapChain(VkeDevice &deviceRef, VkExtent2D extent)
     : device{deviceRef}, windowExtent{extent} {
+  init();
+}
+
+VkeSwapChain::VkeSwapChain(VkeDevice &deviceRef, VkExtent2D extent, std::shared_ptr<VkeSwapChain> previous) 
+  : device{deviceRef}, windowExtent{extent}, old_swap_chain{previous} {
+    init();
+
+    // clean up
+    old_swap_chain = nullptr;
+  }
+
+void VkeSwapChain::init() {
   createSwapChain();
   createImageViews();
   createRenderPass();
@@ -163,7 +175,7 @@ void VkeSwapChain::createSwapChain() {
   createInfo.presentMode = presentMode;
   createInfo.clipped = VK_TRUE;
 
-  createInfo.oldSwapchain = VK_NULL_HANDLE;
+  createInfo.oldSwapchain = old_swap_chain == nullptr ? VK_NULL_HANDLE : old_swap_chain -> swapChain;
 
   if (vkCreateSwapchainKHR(device.device(), &createInfo, nullptr, &swapChain) != VK_SUCCESS) {
     throw std::runtime_error("failed to create swap chain!");

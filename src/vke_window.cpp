@@ -1,4 +1,5 @@
 #include "vke_window.hpp"
+#include <GLFW/glfw3.h>
 #include <stdexcept>
 
 namespace vke {
@@ -30,14 +31,25 @@ namespace vke {
 
             // hint for vulkan
             glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-            // disable resizing
-            glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+            // enable resizing
+            glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
-            // create window TODO
+            // create window
             window = glfwCreateWindow(width, height, window_name.c_str(), nullptr, nullptr);
+            glfwSetWindowUserPointer(window, this);
+            
+            // set callback function
+            glfwSetFramebufferSizeCallback(window, frame_buffer_resize_callback);
         }
 
         VkExtent2D VkeWindow::getExtent() {
             return {static_cast<uint32_t>(width), static_cast<uint32_t>(height)};
+        }
+
+        void VkeWindow::frame_buffer_resize_callback(GLFWwindow *window, int width, int height) {
+            auto vke_window = reinterpret_cast<VkeWindow *>(glfwGetWindowUserPointer(window));
+            vke_window -> frame_buffer_resized = true;
+            vke_window -> width = width;
+            vke_window -> height = height;
         }
 }

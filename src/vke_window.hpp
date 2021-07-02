@@ -20,13 +20,16 @@
             void createWindowSurface(VkInstance instance, VkSurfaceKHR * surface);
 
             VkExtent2D getExtent();
-
+            bool was_window_resized() { return frame_buffer_resized; }
+            void reset_window_resized_flag() { frame_buffer_resized = false; }
 
             private:
+            static void frame_buffer_resize_callback(GLFWwindow *window, int width, int height);
             void initWindow();
 
-            const int width;
-            const int height;
+            int width;
+            int height;
+            bool frame_buffer_resized = false;
             const bool fullscreen;
 
             std::string window_name;

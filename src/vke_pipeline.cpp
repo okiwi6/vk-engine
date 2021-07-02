@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <iostream>
 #include <cassert>
+#include <vulkan/vulkan_core.h>
 
 namespace vke {
 
@@ -71,7 +72,6 @@ namespace vke {
         shader_stages[0].flags = 0;
         shader_stages[0].pNext = nullptr;
         shader_stages[0].pSpecializationInfo = nullptr;
-
         shader_stages[1].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
         shader_stages[1].stage = VK_SHADER_STAGE_FRAGMENT_BIT;
         shader_stages[1].module = fragment_shader_module;
@@ -91,13 +91,13 @@ namespace vke {
         vertex_input_info.pVertexAttributeDescriptions = attribute_descriptions.data();
         vertex_input_info.pVertexBindingDescriptions = binding_descriptions.data();
 
-        // bring together into viewport_info
-        VkPipelineViewportStateCreateInfo viewport_info{};
-        viewport_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
-        viewport_info.viewportCount = 1;
-        viewport_info.pViewports = &config_info.viewport;
-        viewport_info.scissorCount = 1;
-        viewport_info.pScissors = &config_info.scissor;
+        // // bring together into viewport_info
+        // VkPipelineViewportStateCreateInfo viewport_info{};
+        // viewport_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+        // viewport_info.viewportCount = 1;
+        // viewport_info.pViewports = &config_info.viewport;
+        // viewport_info.scissorCount = 1;
+        // viewport_info.pScissors = &config_info.scissor;
 
         VkGraphicsPipelineCreateInfo pipeline_info{};
         pipeline_info.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -105,12 +105,12 @@ namespace vke {
         pipeline_info.pStages = shader_stages;
         pipeline_info.pVertexInputState = &vertex_input_info;
         pipeline_info.pInputAssemblyState = &config_info.input_assembly_info;
-        pipeline_info.pViewportState = &viewport_info;
+        pipeline_info.pViewportState = &config_info.viewport_info;
         pipeline_info.pRasterizationState = &config_info.rasterization_info;
         pipeline_info.pMultisampleState = &config_info.multisample_info;
         pipeline_info.pColorBlendState = &config_info.color_blend_info;
         pipeline_info.pDepthStencilState = &config_info.depth_stencil_info;
-        pipeline_info.pDynamicState = nullptr;
+        pipeline_info.pDynamicState = &config_info.dynamics_state_info;
 
         pipeline_info.layout = config_info.pipeline_layout;
         pipeline_info.renderPass = config_info.render_pass;
@@ -140,25 +140,30 @@ namespace vke {
     }
 
 
-    PipelineConfigInfo VkePipeline::defaultPipelineConfigInfo(uint32_t width, uint32_t height) {
-        PipelineConfigInfo config_info{};
+    void VkePipeline::defaultPipelineConfigInfo(PipelineConfigInfo& config_info) {
 
         config_info.input_assembly_info.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
         // triangle vertices (3 vertices are grouped)
         config_info.input_assembly_info.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
         config_info.input_assembly_info.primitiveRestartEnable = VK_FALSE;
 
-        // viewport configuration
-        config_info.viewport.x = 0.0f;
-        config_info.viewport.y = 0.0f;
-        config_info.viewport.width = static_cast<float>(width);
-        config_info.viewport.height = static_cast<float>(height);
-        config_info.viewport.minDepth = 0.0f;
-        config_info.viewport.maxDepth = 1.0f;
+        // // viewport configuration
+        // config_info.viewport.x = 0.0f;
+        // config_info.viewport.y = 0.0f;
+        // config_info.viewport.width = static_cast<float>(width);
+        // config_info.viewport.height = static_cast<float>(height);
+        // config_info.viewport.minDepth = 0.0f;
+        // config_info.viewport.maxDepth = 1.0f;
 
-        // vertices outside of scissor will be discarded 
-        config_info.scissor.offset = {0, 0};
-        config_info.scissor.extent = {width, height};
+        // // vertices outside of scissor will be discarded 
+        // config_info.scissor.offset = {0, 0};
+        // config_info.scissor.extent = {width, height};
+
+        config_info.viewport_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+        config_info.viewport_info.viewportCount = 1;
+        config_info.viewport_info.pViewports = nullptr;
+        config_info.viewport_info.scissorCount = 1;
+        config_info.viewport_info.pScissors = nullptr;
 
         // configure rasterization
         config_info.rasterization_info.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
@@ -222,7 +227,10 @@ namespace vke {
         config_info.depth_stencil_info.front = {};
         config_info.depth_stencil_info.back = {};
 
-
-        return config_info; 
+        config_info.dynamics_state_enables = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
+        config_info.dynamics_state_info.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+        config_info.dynamics_state_info.pDynamicStates = config_info.dynamics_state_enables.data();
+        config_info.dynamics_state_info.dynamicStateCount = static_cast<uint32_t>(config_info.dynamics_state_enables.size());
+        config_info.dynamics_state_info.flags = 0;
     }
 }
