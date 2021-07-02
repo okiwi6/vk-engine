@@ -8,6 +8,9 @@ set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS};"-g")
 include_directories(${PROJECT_SOURCE_DIR})
 
 add_executable(vulkantest ./src/main.cpp ./src/vke_window.cpp ./src/first_app.cpp ./src/vke_pipeline.cpp ./src/vke_device.cpp ./src/vke_swap_chain.cpp ./src/vke_model.cpp)
+#[[execute_process(COMMAND ../compile_shaders.sh)]]
+
+add_custom_target(shader_compilation ALL ../compile_shaders.sh)
 
 target_link_libraries(vulkantest -lglfw)
 target_link_libraries(vulkantest -lvulkan)
