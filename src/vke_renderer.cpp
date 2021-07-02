@@ -22,12 +22,9 @@ namespace vke {
         free_command_buffers();
     }
 
-
-   
-
     void VkeRenderer::create_command_buffers() {
         // one command buffer per frame buffer
-        command_buffer.resize(vke_swap_chain -> imageCount());
+        command_buffer.resize(VkeSwapChain::MAX_FRAMES_IN_FLIGHT);
 
         VkCommandBufferAllocateInfo alloc_info{};
         alloc_info.sType  = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -58,11 +55,12 @@ namespace vke {
         if (vke_swap_chain == nullptr) {
             vke_swap_chain = std::make_unique<VkeSwapChain>(vke_device, extent);
         } else {
+            std::shared_ptr<VkeSwapChain> old_swap_chain = std::move(vke_swap_chain);
             vke_swap_chain = std::make_unique<VkeSwapChain>(vke_device, extent, std::move(vke_swap_chain));
-            if(vke_swap_chain -> imageCount() != command_buffer.size()) {
-                free_command_buffers();
-                create_command_buffers();
-            }
+            
+            if(!old_swap_chain -> compareSwapChainFormats(*vke_swap_chain.get())) {
+                throw std::runtime_error("swap chain image format has changed");
+            }        
         }
     }
 
@@ -114,6 +112,7 @@ namespace vke {
         }
 
         is_frame_started = false;
+        current_frame_index = (current_frame_index + 1) % VkeSwapChain::MAX_FRAMES_IN_FLIGHT;
     }
 
     void VkeRenderer::begin_swap_chain_render_pass(VkCommandBuffer command_buffer) {

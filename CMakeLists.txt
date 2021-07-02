@@ -7,7 +7,7 @@ set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS};"-g")
 
 include_directories(${PROJECT_SOURCE_DIR})
 
-add_executable(vulkantest ./src/main.cpp ./src/vke_window.cpp ./src/first_app.cpp ./src/vke_pipeline.cpp ./src/vke_device.cpp ./src/vke_swap_chain.cpp ./src/vke_model.cpp ./src/vke_game_object.cpp ./src/vke_renderer.cpp)
+add_executable(vulkantest ./src/main.cpp ./src/vke_window.cpp ./src/first_app.cpp ./src/vke_pipeline.cpp ./src/vke_device.cpp ./src/vke_swap_chain.cpp ./src/vke_model.cpp ./src/vke_game_object.cpp ./src/vke_renderer.cpp ./src/vke_simple_render_system.cpp)
 #[[execute_process(COMMAND ../compile_shaders.sh)]]
 
 add_custom_target(shader_compilation ALL ../compile_shaders.sh)

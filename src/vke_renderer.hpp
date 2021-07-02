@@ -26,7 +26,13 @@
 
             VkCommandBuffer get_current_command_buffer() const { 
                 assert(is_frame_started && "Cannot fetch command buffer if there is no frame in progress");
-                return command_buffer[current_image_index]; 
+                return command_buffer[current_frame_index]; 
+            }
+
+            int get_frame_index() const {
+                assert(is_frame_started && "Cannot get frame index when frame is not in progress");
+                return current_frame_index;
+
             }
 
             VkCommandBuffer begin_frame();
@@ -47,7 +53,8 @@
             std::vector<VkCommandBuffer> command_buffer;
 
             uint32_t current_image_index;
-            bool is_frame_started = false;
+            int current_frame_index{0};
+            bool is_frame_started{false};
         };
     }
 
