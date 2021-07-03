@@ -46,6 +46,7 @@ namespace vke {
     void VkeRenderer::recreate_swap_chain() {
         auto extent = vke_window.getExtent();
         while(extent.width == 0 || extent.height == 0) {
+            // width or height could be 0 temporarily, wait until window has non zero size
             extent = vke_window.getExtent();
             glfwWaitEvents();
         }
@@ -56,7 +57,7 @@ namespace vke {
             vke_swap_chain = std::make_unique<VkeSwapChain>(vke_device, extent);
         } else {
             std::shared_ptr<VkeSwapChain> old_swap_chain = std::move(vke_swap_chain);
-            vke_swap_chain = std::make_unique<VkeSwapChain>(vke_device, extent, std::move(vke_swap_chain));
+            vke_swap_chain = std::make_unique<VkeSwapChain>(vke_device, extent, old_swap_chain);
             
             if(!old_swap_chain -> compareSwapChainFormats(*vke_swap_chain.get())) {
                 throw std::runtime_error("swap chain image format has changed");
@@ -105,9 +106,7 @@ namespace vke {
         if(result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || vke_window.was_window_resized()) {
             vke_window.reset_window_resized_flag();
             recreate_swap_chain();
-        }
-
-        if(result != VK_SUCCESS) {
+        } else if(result != VK_SUCCESS) {
             throw std::runtime_error("failed to present swap chain image");
         }
 

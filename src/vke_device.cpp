@@ -269,6 +269,7 @@ std::vector<const char *> VkeDevice::getRequiredExtensions() {
 
   if (enableValidationLayers) {
     extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+    //extensions.push_back("VK_EXT_debug_report");
   }
 
   return extensions;

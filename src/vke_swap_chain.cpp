@@ -18,7 +18,8 @@ VkeSwapChain::VkeSwapChain(VkeDevice &deviceRef, VkExtent2D extent)
 }
 
 VkeSwapChain::VkeSwapChain(VkeDevice &deviceRef, VkExtent2D extent, std::shared_ptr<VkeSwapChain> previous) 
-  : device{deviceRef}, windowExtent{extent}, old_swap_chain{previous} {
+  : device{deviceRef}, windowExtent{extent}, old_swap_chain{previous} 
+  {
     init();
 
     // clean up
