@@ -2,25 +2,31 @@
     #define vke_game_object_
 
     #include "vke_model.hpp"
+    #include <glm/gtc/matrix_transform.hpp>
 
     //std
     #include <memory>
 
     namespace vke {
 
-        struct Transform2dComponent {
-            glm::vec2 translation{}; // translation of object
-            glm::vec2 scale{1.0f, 1.0f};
-            float rotation;
+        struct TransformComponent {
+            glm::vec3 translation{}; // translation of object
+            glm::vec3 scale{1.0f, 1.0f, 1.0f};
+            glm::vec3 rotation{};
 
-            glm::mat2 mat2() {
-                const float s = glm::sin(rotation);
-                const float c = glm::cos(rotation);
+            glm::mat4 mat4() {
+                // Identity * Translate
+                auto transform = glm::translate(glm::mat4{1.f}, translation);
+
+                // * Rotation (Y1, X2, Z3)
+                transform = glm::rotate(transform, rotation.y, {0.f, 1.f, 0.f});
+                transform = glm::rotate(transform, rotation.x, {1.f, 0.f, 0.f});
+                transform = glm::rotate(transform, rotation.z, {0.f, 0.f, 1.f});
                 
-                // Careful! Matrix initizialized column-wise
-                glm::mat2 rot_matrix{{c, s}, {-s, c}};       
-                glm::mat2 scale_mat{{scale.x, 0.0f}, {0.0f, scale.y}};
-                return  rot_matrix * scale_mat;
+                // * Scale
+                transform = glm::scale(transform, scale);
+
+                return transform;
             };
         };
 
@@ -43,7 +49,7 @@
 
             std::shared_ptr<VkeModel> model{};
             glm::vec3 color{};
-            Transform2dComponent transform2d{};
+            TransformComponent transform{};
 
             private:
             VkeGameObject(id_t obj_id) : id(obj_id) {}

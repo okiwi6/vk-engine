@@ -43,23 +43,72 @@ namespace vke {
         vkDeviceWaitIdle(vke_device.device());
     }
 
+std::unique_ptr<VkeModel> create_cube_model(VkeDevice& device, glm::vec3 offset) {
+  std::vector<VkeModel::Vertex> vertices{
+ 
+      // left face (white)
+      {{-.5f, -.5f, -.5f}, {.9f, .9f, .9f}},
+      {{-.5f, .5f, .5f}, {.9f, .9f, .9f}},
+      {{-.5f, -.5f, .5f}, {.9f, .9f, .9f}},
+      {{-.5f, -.5f, -.5f}, {.9f, .9f, .9f}},
+      {{-.5f, .5f, -.5f}, {.9f, .9f, .9f}},
+      {{-.5f, .5f, .5f}, {.9f, .9f, .9f}},
+ 
+      // right face (yellow)
+      {{.5f, -.5f, -.5f}, {.8f, .8f, .1f}},
+      {{.5f, .5f, .5f}, {.8f, .8f, .1f}},
+      {{.5f, -.5f, .5f}, {.8f, .8f, .1f}},
+      {{.5f, -.5f, -.5f}, {.8f, .8f, .1f}},
+      {{.5f, .5f, -.5f}, {.8f, .8f, .1f}},
+      {{.5f, .5f, .5f}, {.8f, .8f, .1f}},
+ 
+      // top face (orange, remember y axis points down)
+      {{-.5f, -.5f, -.5f}, {.9f, .6f, .1f}},
+      {{.5f, -.5f, .5f}, {.9f, .6f, .1f}},
+      {{-.5f, -.5f, .5f}, {.9f, .6f, .1f}},
+      {{-.5f, -.5f, -.5f}, {.9f, .6f, .1f}},
+      {{.5f, -.5f, -.5f}, {.9f, .6f, .1f}},
+      {{.5f, -.5f, .5f}, {.9f, .6f, .1f}},
+ 
+      // bottom face (red)
+      {{-.5f, .5f, -.5f}, {.8f, .1f, .1f}},
+      {{.5f, .5f, .5f}, {.8f, .1f, .1f}},
+      {{-.5f, .5f, .5f}, {.8f, .1f, .1f}},
+      {{-.5f, .5f, -.5f}, {.8f, .1f, .1f}},
+      {{.5f, .5f, -.5f}, {.8f, .1f, .1f}},
+      {{.5f, .5f, .5f}, {.8f, .1f, .1f}},
+ 
+      // nose face (blue)
+      {{-.5f, -.5f, 0.5f}, {.1f, .1f, .8f}},
+      {{.5f, .5f, 0.5f}, {.1f, .1f, .8f}},
+      {{-.5f, .5f, 0.5f}, {.1f, .1f, .8f}},
+      {{-.5f, -.5f, 0.5f}, {.1f, .1f, .8f}},
+      {{.5f, -.5f, 0.5f}, {.1f, .1f, .8f}},
+      {{.5f, .5f, 0.5f}, {.1f, .1f, .8f}},
+ 
+      // tail face (green)
+      {{-.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
+      {{.5f, .5f, -0.5f}, {.1f, .8f, .1f}},
+      {{-.5f, .5f, -0.5f}, {.1f, .8f, .1f}},
+      {{-.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
+      {{.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
+      {{.5f, .5f, -0.5f}, {.1f, .8f, .1f}},
+ 
+  };
+  for (auto& v : vertices) {
+    v.position += offset;
+  }
+  return std::make_unique<VkeModel>(device, vertices);
+}
+
     void FirstApp::load_game_objects() {
-        // create triangle
-        std::vector<VkeModel::Vertex> vertices {
-            {{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-            {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
-            {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
-        };
+        std::shared_ptr<VkeModel> vke_model = create_cube_model(vke_device, {.0f, .0f, .0f});
 
-        auto vke_model = std::make_shared<VkeModel>(vke_device, vertices);
-        auto triangle = VkeGameObject::create_game_object();
-        triangle.model = vke_model;
-        triangle.color = {1.0f, 0.8f, 0.1f};
-        triangle.transform2d.translation.x = 0.2f;
-        triangle.transform2d.scale = {2.f, 1.f};
-        triangle.transform2d.rotation = 0.25f * glm::two_pi<float>();
+        auto cube = VkeGameObject::create_game_object();
+        cube.model = vke_model;
+        cube.transform.translation = {.0f, .0f, .5f};
+        cube.transform.scale = {0.5f, 0.5f, 0.5f};
 
-        game_objects.push_back(std::move(triangle));
-
+        game_objects.push_back(std::move(cube));
     }
 }
