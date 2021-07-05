@@ -22,6 +22,8 @@
 
             VkRenderPass get_swap_chain_render_pass() const { return vke_swap_chain->getRenderPass(); }
 
+            float get_aspect_ratio() const { return vke_swap_chain->extentAspectRatio(); }
+
             bool is_frame_in_progress() const { return is_frame_started; }
 
             VkCommandBuffer get_current_command_buffer() const { 

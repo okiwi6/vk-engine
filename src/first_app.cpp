@@ -1,4 +1,6 @@
 #include "first_app.hpp"
+
+#include "vke_camera.hpp"
 #include "vke_simple_render_system.hpp"
 
 #include <GLFW/glfw3.h>
@@ -27,13 +29,21 @@ namespace vke {
 
     void FirstApp::run() {
         VkeSimpleRenderSystem simple_render_system{vke_device, vke_renderer.get_swap_chain_render_pass()};
+        VkeCamera camera{};
+        
 
         while (!vke_window.should_close()) {;
             glfwPollEvents();
+            float aspect = vke_renderer.get_aspect_ratio();
+            // orthographic view
+            // camera.set_orthographic_projection(-aspect, aspect, -1, 1, -1, 1);
+
+            // perspective view
+            camera.set_perspective_projection(glm::radians(50.f), aspect, 0.1f, 10.f);
 
             if (VkCommandBuffer command_buffer = vke_renderer.begin_frame()) {
                 vke_renderer.begin_swap_chain_render_pass(command_buffer);
-                simple_render_system.render_game_objects(command_buffer, game_objects);
+                simple_render_system.render_game_objects(command_buffer, game_objects, camera);
                 vke_renderer.end_swap_chain_render_pass(command_buffer);
                 vke_renderer.end_frame();
             }
@@ -106,7 +116,7 @@ std::unique_ptr<VkeModel> create_cube_model(VkeDevice& device, glm::vec3 offset)
 
         auto cube = VkeGameObject::create_game_object();
         cube.model = vke_model;
-        cube.transform.translation = {.0f, .0f, .5f};
+        cube.transform.translation = {.0f, .0f, 2.5f};
         cube.transform.scale = {0.5f, 0.5f, 0.5f};
 
         game_objects.push_back(std::move(cube));

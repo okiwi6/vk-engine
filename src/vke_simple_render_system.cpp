@@ -68,7 +68,7 @@ namespace vke {
         );
     }
 
-    void VkeSimpleRenderSystem::render_game_objects(VkCommandBuffer single_command_buffer, std::vector<VkeGameObject> &game_objects) {
+    void VkeSimpleRenderSystem::render_game_objects(VkCommandBuffer single_command_buffer, std::vector<VkeGameObject> &game_objects, const VkeCamera &camera) {
         vke_pipeline -> bind(single_command_buffer);
 
         for(auto& obj : game_objects) {
@@ -77,7 +77,7 @@ namespace vke {
 
             SimplePushConstantData push{};
             push.color = obj.color;
-            push.transform = obj.transform.mat4();
+            push.transform = camera.get_projection() * obj.transform.mat4();
 
             vkCmdPushConstants(
                 single_command_buffer,

@@ -4,7 +4,7 @@
     #include "vke_pipeline.hpp"
     #include "vke_device.hpp"
     #include "vke_game_object.hpp"
-  
+    #include "vke_camera.hpp"
 
     // std
     #include <memory>
@@ -19,7 +19,7 @@
             VkeSimpleRenderSystem(const VkeSimpleRenderSystem&) = delete;
             VkeSimpleRenderSystem& operator=(const VkeSimpleRenderSystem&) = delete;
 
-            void render_game_objects(VkCommandBuffer command_buffer, std::vector<VkeGameObject> &game_objects);
+            void render_game_objects(VkCommandBuffer command_buffer, std::vector<VkeGameObject> &game_objects, const VkeCamera &camera);
             
             private:
             void create_pipeline_layout();
