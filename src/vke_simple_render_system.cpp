@@ -71,13 +71,15 @@ namespace vke {
     void VkeSimpleRenderSystem::render_game_objects(VkCommandBuffer single_command_buffer, std::vector<VkeGameObject> &game_objects, const VkeCamera &camera) {
         vke_pipeline -> bind(single_command_buffer);
 
+        auto projection_view = camera.get_projection() * camera.get_view();
+
         for(auto& obj : game_objects) {
             obj.transform.rotation.y = glm::mod(obj.transform.rotation.y + 0.01f, glm::two_pi<float>());
             obj.transform.rotation.x = glm::mod(obj.transform.rotation.x + 0.015f, glm::two_pi<float>());
 
             SimplePushConstantData push{};
             push.color = obj.color;
-            push.transform = camera.get_projection() * obj.transform.mat4();
+            push.transform = projection_view * obj.transform.mat4();
 
             vkCmdPushConstants(
                 single_command_buffer,

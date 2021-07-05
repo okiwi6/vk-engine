@@ -30,7 +30,8 @@ namespace vke {
     void FirstApp::run() {
         VkeSimpleRenderSystem simple_render_system{vke_device, vke_renderer.get_swap_chain_render_pass()};
         VkeCamera camera{};
-        
+        camera.set_view_direction(glm::vec3(0.f), glm::vec3(0.5f, 0.f, 1.f));
+        camera.set_view_target(glm::vec3(-1.f, -2.f, -2.f), glm::vec3(0.f, 0.f, 2.5f));
 
         while (!vke_window.should_close()) {;
             glfwPollEvents();
