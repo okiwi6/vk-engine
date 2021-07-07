@@ -1,5 +1,9 @@
 #include "vke_window.hpp"
+
+#define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+
+
 #include <stdexcept>
 
 namespace vke {
@@ -9,6 +13,8 @@ namespace vke {
             window_name(name)
             {
                 initWindow();
+                key_event_handler.setup_callback(window);
+                key_event_handler.register_key(GLFW_KEY_A);
             }
 
         VkeWindow::~VkeWindow() {
@@ -19,6 +25,7 @@ namespace vke {
         bool VkeWindow::should_close() {
             return glfwWindowShouldClose(window);
         }
+
         void VkeWindow::createWindowSurface(VkInstance instance, VkSurfaceKHR * surface) {
             if (glfwCreateWindowSurface(instance, window, nullptr, surface) != VK_SUCCESS) {
                 throw std::runtime_error("failed to create window surface");

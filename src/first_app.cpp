@@ -27,6 +27,7 @@ namespace vke {
     }
 
 
+
     void FirstApp::run() {
         VkeSimpleRenderSystem simple_render_system{vke_device, vke_renderer.get_swap_chain_render_pass()};
         VkeCamera camera{};

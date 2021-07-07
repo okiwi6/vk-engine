@@ -1,8 +1,12 @@
 #ifndef window_hpp_
     #define window_hpp_
 
+    #include "vke_window_event_handler.hpp"
+
     #define GLFW_INCLUDE_VULKAN
     #include <GLFW/glfw3.h>
+    #include <vulkan/vulkan.h>
+
 
     #include <string>
 
@@ -23,6 +27,8 @@
             bool was_window_resized() { return frame_buffer_resized; }
             void reset_window_resized_flag() { frame_buffer_resized = false; }
 
+            //void set_keyboard_callback(void (VkeWindowKeyboardEventHandler::*f) (GLFWwindow*, int, int, int, int));
+
             private:
             static void frame_buffer_resize_callback(GLFWwindow *window, int width, int height);
             void initWindow();
@@ -32,7 +38,8 @@
             bool frame_buffer_resized = false;
 
             std::string window_name;
-            GLFWwindow * window;
+            GLFWwindow* window;
+            VkeWindowKeyboardEventHandler key_event_handler{};
         };
         
 
