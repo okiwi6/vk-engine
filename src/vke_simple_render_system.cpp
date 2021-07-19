@@ -74,9 +74,6 @@ namespace vke {
         auto projection_view = camera.get_projection() * camera.get_view();
 
         for(auto& obj : game_objects) {
-            obj.transform.rotation.y = glm::mod(obj.transform.rotation.y + 0.01f, glm::two_pi<float>());
-            obj.transform.rotation.x = glm::mod(obj.transform.rotation.x + 0.015f, glm::two_pi<float>());
-
             SimplePushConstantData push{};
             push.color = obj.color;
             push.transform = projection_view * obj.transform.mat4();
