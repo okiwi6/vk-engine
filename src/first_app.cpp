@@ -18,6 +18,7 @@
 #include <vulkan/vulkan_core.h>
 #include <array>
 #include <chrono>
+#include "Chunk.hpp"
 
 namespace vke {
 
@@ -53,7 +54,7 @@ namespace vke {
 
             camera_controller.move_in_plane_xz(vke_window.get_GLFW_window(), frame_time, viewer_object);
             camera.set_view_yxz(viewer_object.transform.translation, viewer_object.transform.rotation);
-
+            // camera.set_view_target(viewer_object.transform.translation, game_objects[0]);
 
             float aspect = vke_renderer.get_aspect_ratio();
             // orthographic view
@@ -68,7 +69,7 @@ namespace vke {
                 vke_renderer.end_swap_chain_render_pass(command_buffer);
                 vke_renderer.end_frame();
             }
-            std::cout << "FPS: " << 1 / frame_time << std::endl;
+            //std::cout << "FPS: " << 1 / frame_time << std::endl;
         }
 
         vkDeviceWaitIdle(vke_device.device());
@@ -133,13 +134,23 @@ std::unique_ptr<VkeModel> create_cube_model(VkeDevice& device, glm::vec3 offset)
 }
 
     void FirstApp::load_game_objects() {
-        std::shared_ptr<VkeModel> vke_model = create_cube_model(vke_device, {.0f, .0f, .0f});
+        Chunk ch;
+        std::shared_ptr<VkeModel> vke_model = std::make_unique<VkeModel>(vke_device, ch.get_triangles()); // create_cube_model(vke_device, {.0f, .0f, .0f});
 
         auto cube = VkeGameObject::create_game_object();
         cube.model = vke_model;
-        cube.transform.translation = {.0f, .0f, 2.5f};
+        cube.transform.translation = {.0f, .0f, 0.5f};
         cube.transform.scale = {0.5f, 0.5f, 0.5f};
 
         game_objects.push_back(std::move(cube));
+
+        // std::shared_ptr<VkeModel> vke_model2 = create_cube_model(vke_device, {.0f, .0f, .0f});
+
+        // auto cube2 = VkeGameObject::create_game_object();
+        // cube2.model = vke_model2;
+        // cube2.transform.translation = {.0f, .0f, .0f};
+        // cube2.transform.scale = {0.3f, 0.3f, 0.3f};
+
+        // game_objects.push_back(std::move(cube2));
     }
 }

@@ -56,6 +56,10 @@ void VkeCamera::set_view_target(glm::vec3 position, glm::vec3 target, glm::vec3 
     set_view_direction(position, target - position, up);
 }
 
+void VkeCamera::set_view_target(glm::vec3 position, VkeGameObject& obj, glm::vec3 up) {
+    set_view_target(position, obj.transform.translation, up);
+}
+
 void VkeCamera::set_view_yxz(glm::vec3 position, glm::vec3 rotation) {
   const float c3 = glm::cos(rotation.z);
   const float s3 = glm::sin(rotation.z);
