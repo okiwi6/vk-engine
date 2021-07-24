@@ -2,19 +2,26 @@
 
 //std
 #include <cassert>
+#include <cstdint>
 #include <cstring>
 #include <vulkan/vulkan_core.h>
 
 namespace vke {
-    VkeModel::VkeModel(VkeDevice &device, const std::vector<Vertex> &vertices) :
+    VkeModel::VkeModel(VkeDevice &device, const VkeModel::Data &data) :
         vke_device(device)
     {
-        create_vertex_buffers(vertices);
+        create_vertex_buffers(data.vertices);
+        create_index_buffers(data.indices);
     }
             
     VkeModel::~VkeModel() {        
         vkDestroyBuffer(vke_device.device(), vertex_buffer, nullptr);
         vkFreeMemory(vke_device.device(), vertex_buffer_memory, nullptr);
+
+        if(has_index_buffer) {
+            vkDestroyBuffer(vke_device.device(), index_buffer, nullptr);
+            vkFreeMemory(vke_device.device(), index_buffer_memory, nullptr);
+        }
     }
 
     void VkeModel::create_vertex_buffers(const std::vector<Vertex> &vertices) {
@@ -42,9 +49,40 @@ namespace vke {
         vkUnmapMemory(vke_device.device(), vertex_buffer_memory);
     }
 
+    void VkeModel::create_index_buffers(const std::vector<uint32_t> &indices) {
+        index_count = static_cast<uint32_t>(indices.size());
+        has_index_buffer = index_count > 0;
+
+        if(!has_index_buffer) {
+            return;
+        }
+
+        VkDeviceSize buffer_size = sizeof(indices[0]) * index_count;
+        // host: cpu, device: gpu
+        vke_device.createBuffer(
+            buffer_size,
+            VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+            index_buffer,
+            index_buffer_memory
+        );
+        
+        
+        void *data;
+        vkMapMemory(vke_device.device(), index_buffer_memory, 0, buffer_size, 0, &data);
+        memcpy(data, indices.data(), static_cast<size_t>(buffer_size));
+        
+        // Flush not necessary because COHERENT flag set
+        vkUnmapMemory(vke_device.device(), index_buffer_memory);
+    }
+
     void VkeModel::draw(VkCommandBuffer command_buffer) {
-        // 1 instance, 0 first vertex index, 0 first instance index
-        vkCmdDraw(command_buffer, vertex_count, 1, 0, 0);
+        if(has_index_buffer) {
+            vkCmdDrawIndexed(command_buffer, index_count, 1, 0, 0, 0);
+        } else {
+            // 1 instance, 0 first vertex index, 0 first instance index
+            vkCmdDraw(command_buffer, vertex_count, 1, 0, 0);
+        }
     }
 
     void VkeModel::bind(VkCommandBuffer command_buffer) {
@@ -52,6 +90,10 @@ namespace vke {
         VkDeviceSize offsets[] = {0};
         // 0 first binding, 1 binding count
         vkCmdBindVertexBuffers(command_buffer, 0, 1, buffers, offsets);
+
+        if(has_index_buffer) {
+            vkCmdBindIndexBuffer(command_buffer, index_buffer, 0, VK_INDEX_TYPE_UINT32);
+        }
     }
 
     std::vector<VkVertexInputBindingDescription> VkeModel::Vertex::get_binding_descriptions() {
