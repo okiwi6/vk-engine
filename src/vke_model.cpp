@@ -1,10 +1,30 @@
 #include "vke_model.hpp"
+#include "vke_utils.hpp"
+
+//libs
+#define TINYOBJLOADER_IMPLEMENTATION
+#include <tinyobjloader.h>
+
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/hash.hpp>
 
 //std
 #include <cassert>
 #include <cstdint>
 #include <cstring>
 #include <vulkan/vulkan_core.h>
+#include <unordered_map>
+
+namespace std {
+    template <>
+    struct hash<vke::VkeModel::Vertex> {
+        size_t operator()(vke::VkeModel::Vertex const &vertex) const {
+            size_t seed = 0;
+            vke::hash_combine(seed, vertex.position, vertex.color, vertex.normal, vertex.uv);
+            return seed;
+        }
+    };
+}
 
 namespace vke {
     VkeModel::VkeModel(VkeDevice &device, const VkeModel::Data &data) :
@@ -23,6 +43,16 @@ namespace vke {
             vkFreeMemory(vke_device.device(), index_buffer_memory, nullptr);
         }
     }
+
+    std::unique_ptr<VkeModel> VkeModel::create_model_from_file(VkeDevice &device, const std::string &filepath) {
+        Data data{};
+        data.load_model(filepath);
+
+        // std::cout << "[i] Vertex Count " << data.vertices.size() << "\n";
+
+        return std::make_unique<VkeModel>(device, data);
+    }
+
 
     void VkeModel::create_vertex_buffers(const std::vector<Vertex> &vertices) {
         vertex_count = static_cast<uint32_t>(vertices.size());
@@ -152,5 +182,71 @@ namespace vke {
         return attribute_descriptions;
     }
 
+
+    void VkeModel::Data::load_model(const std::string &filepath) {
+        tinyobj::attrib_t attrib;
+        std::vector<tinyobj::shape_t> shapes;
+        std::vector<tinyobj::material_t> materials;
+        std::string warn, err;
+
+        if(!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, filepath.c_str())) {
+            throw std::runtime_error(warn + err);
+        }
+
+        vertices.clear();
+        indices.clear();
+
+        std::unordered_map<Vertex, uint32_t> unique_vertices{};
+
+        for(const auto &shape : shapes) {
+            for(const auto &index : shape.mesh.indices) {
+                Vertex vertex{};
+
+                if(index.vertex_index >= 0) {
+                    vertex.position = {
+                        attrib.vertices[3 * index.vertex_index + 0], 
+                        attrib.vertices[3 * index.vertex_index + 1],
+                        attrib.vertices[3 * index.vertex_index + 2],
+                    };
+
+                    // color support
+
+                    auto color_index = 3 * index.vertex_index + 2;
+                    if(color_index < attrib.colors.size()) {
+                        vertex.color = {
+                            attrib.colors[color_index - 2], 
+                            attrib.colors[color_index - 1],
+                            attrib.colors[color_index - 0],
+                        };
+                    } else {
+                        // set default color
+                        vertex.color = {1.f, 1.f, 1.f};
+                    }
+                }
+
+                if(index.normal_index >= 0) {
+                    vertex.normal = {
+                        attrib.normals[3 * index.normal_index + 0], 
+                        attrib.normals[3 * index.normal_index + 1],
+                        attrib.normals[3 * index.normal_index + 2],
+                    };
+                }
+
+                if(index.texcoord_index >= 0) {
+                    vertex.uv = {
+                        attrib.texcoords[2 * index.texcoord_index + 0], 
+                        attrib.texcoords[2 * index.texcoord_index + 1],
+                    };
+                }
+
+                if(unique_vertices.count(vertex) == 0) {
+                    // add to hashtable
+                    unique_vertices[vertex] = static_cast<uint32_t>(vertices.size());
+                    vertices.push_back(vertex);
+                }
+                indices.push_back(unique_vertices[vertex]);
+            }
+        }
+    }
 
 }

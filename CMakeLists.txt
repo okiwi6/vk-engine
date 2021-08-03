@@ -20,5 +20,8 @@ target_link_libraries(vulkantest -lXxf86vm)
 target_link_libraries(vulkantest -lXrandr)
 target_link_libraries(vulkantest -lXi)
 
+# own dependencies
+include_directories("./libs/tinyobjloader/")
+
 # shader compilation
 add_custom_target(shader_compilation ALL ../compile_shaders.sh)

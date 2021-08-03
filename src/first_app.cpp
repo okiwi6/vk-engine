@@ -68,72 +68,20 @@ namespace vke {
                 vke_renderer.end_swap_chain_render_pass(command_buffer);
                 vke_renderer.end_frame();
             }
-            std::cout << "FPS: " << 1 / frame_time << std::endl;
+            // std::cout << "FPS: " << 1 / frame_time << std::endl;
         }
 
         vkDeviceWaitIdle(vke_device.device());
     }
 
-std::unique_ptr<VkeModel> create_cube_model(VkeDevice& device, glm::vec3 offset) {
-    VkeModel::Data model_data{};
-    model_data.vertices = {
-        // left face (white)
-        {{-.5f, -.5f, -.5f}, {.9f, .9f, .9f}},
-        {{-.5f, .5f, .5f}, {.9f, .9f, .9f}},
-        {{-.5f, -.5f, .5f}, {.9f, .9f, .9f}},
-        {{-.5f, .5f, -.5f}, {.9f, .9f, .9f}},
-    
-        // right face (yellow)
-        {{.5f, -.5f, -.5f}, {.8f, .8f, .1f}},
-        {{.5f, .5f, .5f}, {.8f, .8f, .1f}},
-        {{.5f, -.5f, .5f}, {.8f, .8f, .1f}},
-        {{.5f, .5f, -.5f}, {.8f, .8f, .1f}},
-    
-        // top face (orange, remember y axis points down)
-        {{-.5f, -.5f, -.5f}, {.9f, .6f, .1f}},
-        {{.5f, -.5f, .5f}, {.9f, .6f, .1f}},
-        {{-.5f, -.5f, .5f}, {.9f, .6f, .1f}},
-        {{.5f, -.5f, -.5f}, {.9f, .6f, .1f}},
-    
-        // bottom face (red)
-        {{-.5f, .5f, -.5f}, {.8f, .1f, .1f}},
-        {{.5f, .5f, .5f}, {.8f, .1f, .1f}},
-        {{-.5f, .5f, .5f}, {.8f, .1f, .1f}},
-        {{.5f, .5f, -.5f}, {.8f, .1f, .1f}},
-    
-        // nose face (blue)
-        {{-.5f, -.5f, 0.5f}, {.1f, .1f, .8f}},
-        {{.5f, .5f, 0.5f}, {.1f, .1f, .8f}},
-        {{-.5f, .5f, 0.5f}, {.1f, .1f, .8f}},
-        {{.5f, -.5f, 0.5f}, {.1f, .1f, .8f}},
-    
-        // tail face (green)
-        {{-.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
-        {{.5f, .5f, -0.5f}, {.1f, .8f, .1f}},
-        {{-.5f, .5f, -0.5f}, {.1f, .8f, .1f}},
-        {{.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
-    };
-
-    for (auto& v : model_data.vertices) {
-        v.position += offset;
-    }
-
-    // define index mapping
-    model_data.indices = {0,  1,  2,  0,  3,  1,  4,  5,  6,  4,  7,  5,  8,  9,  10, 8,  11, 9,
-                          12, 13, 14, 12, 15, 13, 16, 17, 18, 16, 19, 17, 20, 21, 22, 20, 23, 21};
-
-
-    return std::make_unique<VkeModel>(device, model_data);
-}
-
     void FirstApp::load_game_objects() {
-        std::shared_ptr<VkeModel> vke_model = create_cube_model(vke_device, {.0f, .0f, .0f});
+        std::shared_ptr<VkeModel> vke_model = VkeModel::create_model_from_file(vke_device, "../assets/smooth_vase.obj");
 
-        auto cube = VkeGameObject::create_game_object();
-        cube.model = vke_model;
-        cube.transform.translation = {.0f, .0f, 2.5f};
-        cube.transform.scale = {0.5f, 0.5f, 0.5f};
+        auto game_obj = VkeGameObject::create_game_object();
+        game_obj.model = vke_model;
+        game_obj.transform.translation = {.0f, .0f, 2.5f};
+        game_obj.transform.scale = glm::vec3(3.f);
 
-        game_objects.push_back(std::move(cube));
+        game_objects.push_back(std::move(game_obj));
     }
 }
