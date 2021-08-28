@@ -75,11 +75,11 @@ namespace vke {
     }
 
     void FirstApp::load_game_objects() {
-        std::shared_ptr<VkeModel> vke_model = VkeModel::create_model_from_file(vke_device, "../assets/smooth_vase.obj");
+        std::shared_ptr<VkeModel> vke_model = VkeModel::create_model_from_file(vke_device, "../assets/flat_vase.obj");
 
         auto game_obj = VkeGameObject::create_game_object();
         game_obj.model = vke_model;
-        game_obj.transform.translation = {.0f, .0f, 2.5f};
+        game_obj.transform.translation = {.0f, .5f, 2.5f};
         game_obj.transform.scale = glm::vec3(3.f);
 
         game_objects.push_back(std::move(game_obj));

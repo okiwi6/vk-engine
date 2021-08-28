@@ -16,8 +16,7 @@ namespace vke {
     struct SimplePushConstantData {
         // identity
         glm::mat4 transform{1.0f};
-        // alignment needed because 4 bytes expected
-        alignas(16) glm::vec3 color;
+        glm::mat4 normal_matrix{1.f};
     };
 
 
@@ -75,8 +74,10 @@ namespace vke {
 
         for(auto& obj : game_objects) {
             SimplePushConstantData push{};
-            push.color = obj.color;
+            auto model_mat = obj.transform.mat4();
+            
             push.transform = projection_view * obj.transform.mat4();
+            push.normal_matrix = obj.transform.normal_matrix();
 
             vkCmdPushConstants(
                 single_command_buffer,
