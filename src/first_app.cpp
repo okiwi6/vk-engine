@@ -4,6 +4,7 @@
 #include "vke_simple_render_system.hpp"
 #include "keyboard_movement_controller.hpp"
 #include "vke_definitions.hpp"
+#include "vke_buffer.hpp"
 
 #include <GLFW/glfw3.h>
 #include <iostream>
@@ -21,6 +22,11 @@
 
 namespace vke {
 
+    struct GlobalUBO {
+        glm::mat4 projection_view{1.f};
+        glm::vec3 light_direction = glm::normalize(glm::vec3{1.f, -3.f, -1.f});
+    };
+
     FirstApp::FirstApp() {
         load_game_objects();
     }
@@ -31,6 +37,20 @@ namespace vke {
 
 
     void FirstApp::run() {
+
+        std::vector<std::unique_ptr<VkeBuffer>> ubo_buffers(VkeSwapChain::MAX_FRAMES_IN_FLIGHT);
+        for(int i = 0; i < ubo_buffers.size(); i++) {
+            ubo_buffers[i] = std::make_unique<VkeBuffer>(
+                vke_device,
+                sizeof(GlobalUBO),
+                1,
+                VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT /* | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT */
+            );
+            ubo_buffers[i]->map();
+
+        }     
+
         VkeSimpleRenderSystem simple_render_system{vke_device, vke_renderer.get_swap_chain_render_pass()};
         VkeCamera camera{};
         camera.set_view_direction(glm::vec3(0.f), glm::vec3(0.5f, 0.f, 1.f));
@@ -63,8 +83,23 @@ namespace vke {
             camera.set_perspective_projection(glm::radians(50.f), aspect, 0.1f, 10.f);
 
             if (VkCommandBuffer command_buffer = vke_renderer.begin_frame()) {
+                int frame_index = vke_renderer.get_frame_index();
+                FrameInfo frame_info{
+                    frame_index,
+                    frame_time,
+                    command_buffer,
+                    camera
+                };
+
+                // update
+                GlobalUBO ubo{};
+                ubo.projection_view = camera.get_projection() * camera.get_view();
+                ubo_buffers[frame_index]->write_to_buffer(&ubo);
+                ubo_buffers[frame_index]->flush();
+                
+                // render
                 vke_renderer.begin_swap_chain_render_pass(command_buffer);
-                simple_render_system.render_game_objects(command_buffer, game_objects, camera);
+                simple_render_system.render_game_objects(frame_info, game_objects);
                 vke_renderer.end_swap_chain_render_pass(command_buffer);
                 vke_renderer.end_frame();
             }

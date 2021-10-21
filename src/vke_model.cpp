@@ -34,15 +34,7 @@ namespace vke {
         create_index_buffers(data.indices);
     }
             
-    VkeModel::~VkeModel() {        
-        vkDestroyBuffer(vke_device.device(), vertex_buffer, nullptr);
-        vkFreeMemory(vke_device.device(), vertex_buffer_memory, nullptr);
-
-        if(has_index_buffer) {
-            vkDestroyBuffer(vke_device.device(), index_buffer, nullptr);
-            vkFreeMemory(vke_device.device(), index_buffer_memory, nullptr);
-        }
-    }
+    VkeModel::~VkeModel() {}
 
     std::unique_ptr<VkeModel> VkeModel::create_model_from_file(VkeDevice &device, const std::string &filepath) {
         Data data{};
@@ -63,37 +55,28 @@ namespace vke {
         VkDeviceSize buffer_size = sizeof(vertices[0]) * vertex_count;
         // host: cpu, device: gpu
 
-        VkBuffer staging_buffer;
-        VkDeviceMemory staging_buffer_memory;
-
-        vke_device.createBuffer(
-            buffer_size,
+        uint32_t vertex_size = sizeof(vertices[0]);
+        VkeBuffer staging_buffer {
+            vke_device,
+            vertex_size,
+            vertex_count,
             VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-            staging_buffer,
-            staging_buffer_memory
-        );
-        
-        
-        void *data;
-        vkMapMemory(vke_device.device(), staging_buffer_memory, 0, buffer_size, 0, &data);
-        memcpy(data, vertices.data(), static_cast<size_t>(buffer_size));
-        
-        // Flush not necessary because COHERENT flag set
-        vkUnmapMemory(vke_device.device(), staging_buffer_memory);
 
-        vke_device.createBuffer(
-            buffer_size,
+        };
+
+        staging_buffer.map();
+        staging_buffer.write_to_buffer((void *) vertices.data());
+
+        vertex_buffer = std::make_unique<VkeBuffer>(
+            vke_device,
+            vertex_size,
+            vertex_count,
             VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-            vertex_buffer,
-            vertex_buffer_memory
+            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
         );
 
-        vke_device.copyBuffer(staging_buffer, vertex_buffer, buffer_size);
-
-        vkDestroyBuffer(vke_device.device(), staging_buffer, nullptr);
-        vkFreeMemory(vke_device.device(), staging_buffer_memory, nullptr);
+        vke_device.copyBuffer(staging_buffer.get_buffer(), vertex_buffer->get_buffer(), buffer_size);
     }
 
     void VkeModel::create_index_buffers(const std::vector<uint32_t> &indices) {
@@ -105,38 +88,28 @@ namespace vke {
         }
 
         VkDeviceSize buffer_size = sizeof(indices[0]) * index_count;
-        // host: cpu, device: gpu
-        VkBuffer staging_buffer;
-        VkDeviceMemory staging_buffer_memory;
+        uint32_t index_size = sizeof(indices[0]);
 
-        vke_device.createBuffer(
-            buffer_size,
+        VkeBuffer staging_buffer {
+            vke_device,
+            index_size,
+            index_count,
             VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-            staging_buffer,
-            staging_buffer_memory
-        );
-        
-        
-        void *data;
-        vkMapMemory(vke_device.device(), staging_buffer_memory, 0, buffer_size, 0, &data);
-        memcpy(data, indices.data(), static_cast<size_t>(buffer_size));
-        
-        // Flush not necessary because COHERENT flag set
-        vkUnmapMemory(vke_device.device(), staging_buffer_memory);
+        };
 
-        vke_device.createBuffer(
-            buffer_size,
+        staging_buffer.map();
+        staging_buffer.write_to_buffer((void *) indices.data());
+        
+        index_buffer = std::make_unique<VkeBuffer>(
+            vke_device,
+            index_size,
+            index_count,
             VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-            index_buffer,
-            index_buffer_memory
+            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
         );
 
-        vke_device.copyBuffer(staging_buffer, index_buffer, buffer_size);
-
-        vkDestroyBuffer(vke_device.device(), staging_buffer, nullptr);
-        vkFreeMemory(vke_device.device(), staging_buffer_memory, nullptr);
+        vke_device.copyBuffer(staging_buffer.get_buffer(), index_buffer->get_buffer(), buffer_size);
     }
 
     void VkeModel::draw(VkCommandBuffer command_buffer) {
@@ -149,13 +122,13 @@ namespace vke {
     }
 
     void VkeModel::bind(VkCommandBuffer command_buffer) {
-        VkBuffer buffers[] = {vertex_buffer};
+        VkBuffer buffers[] = {vertex_buffer->get_buffer()};
         VkDeviceSize offsets[] = {0};
         // 0 first binding, 1 binding count
         vkCmdBindVertexBuffers(command_buffer, 0, 1, buffers, offsets);
 
         if(has_index_buffer) {
-            vkCmdBindIndexBuffer(command_buffer, index_buffer, 0, VK_INDEX_TYPE_UINT32);
+            vkCmdBindIndexBuffer(command_buffer, index_buffer->get_buffer(), 0, VK_INDEX_TYPE_UINT32);
         }
     }
 
