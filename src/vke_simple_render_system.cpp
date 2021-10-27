@@ -16,8 +16,7 @@ namespace vke {
     struct SimplePushConstantData {
         // identity
         glm::mat4 transform{1.0f};
-        // alignment needed because 4 bytes expected
-        alignas(16) glm::vec3 color;
+        glm::mat4 normal_matrix{1.f};
     };
 
 
@@ -68,26 +67,28 @@ namespace vke {
         );
     }
 
-    void VkeSimpleRenderSystem::render_game_objects(VkCommandBuffer single_command_buffer, std::vector<VkeGameObject> &game_objects, const VkeCamera &camera) {
-        vke_pipeline -> bind(single_command_buffer);
+    void VkeSimpleRenderSystem::render_game_objects(FrameInfo frame_info, std::vector<VkeGameObject> &game_objects) {
+        vke_pipeline -> bind(frame_info.command_buffer);
 
-        auto projection_view = camera.get_projection() * camera.get_view();
+        auto projection_view = frame_info.camera.get_projection() * frame_info.camera.get_view();
 
         for(auto& obj : game_objects) {
             SimplePushConstantData push{};
-            push.color = obj.color;
+            auto model_mat = obj.transform.mat4();
+            
             push.transform = projection_view * obj.transform.mat4();
+            push.normal_matrix = obj.transform.normal_matrix();
 
             vkCmdPushConstants(
-                single_command_buffer,
+                frame_info.command_buffer,
                 pipeline_layout,
                 VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
                 0,
                 sizeof(SimplePushConstantData),
                 &push
             );
-            obj.model->bind(single_command_buffer);
-            obj.model->draw(single_command_buffer);
+            obj.model->bind(frame_info.command_buffer);
+            obj.model->draw(frame_info.command_buffer);
         }
     }
 }

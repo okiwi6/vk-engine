@@ -4,6 +4,7 @@
 #include "vke_simple_render_system.hpp"
 #include "keyboard_movement_controller.hpp"
 #include "vke_definitions.hpp"
+#include "vke_buffer.hpp"
 
 #include <GLFW/glfw3.h>
 #include <iostream>
@@ -22,6 +23,11 @@
 
 namespace vke {
 
+    struct GlobalUBO {
+        glm::mat4 projection_view{1.f};
+        glm::vec3 light_direction = glm::normalize(glm::vec3{1.f, -3.f, -1.f});
+    };
+
     FirstApp::FirstApp() {
         load_game_objects();
     }
@@ -32,6 +38,20 @@ namespace vke {
 
 
     void FirstApp::run() {
+
+        std::vector<std::unique_ptr<VkeBuffer>> ubo_buffers(VkeSwapChain::MAX_FRAMES_IN_FLIGHT);
+        for(int i = 0; i < ubo_buffers.size(); i++) {
+            ubo_buffers[i] = std::make_unique<VkeBuffer>(
+                vke_device,
+                sizeof(GlobalUBO),
+                1,
+                VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT /* | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT */
+            );
+            ubo_buffers[i]->map();
+
+        }     
+
         VkeSimpleRenderSystem simple_render_system{vke_device, vke_renderer.get_swap_chain_render_pass()};
         VkeCamera camera{};
         camera.set_view_direction(glm::vec3(0.f), glm::vec3(0.5f, 0.f, 1.f));
@@ -64,76 +84,38 @@ namespace vke {
             camera.set_perspective_projection(glm::radians(50.f), aspect, 0.1f, 10.f);
 
             if (VkCommandBuffer command_buffer = vke_renderer.begin_frame()) {
+                int frame_index = vke_renderer.get_frame_index();
+                FrameInfo frame_info{
+                    frame_index,
+                    frame_time,
+                    command_buffer,
+                    camera
+                };
+
+                // update
+                GlobalUBO ubo{};
+                ubo.projection_view = camera.get_projection() * camera.get_view();
+                ubo_buffers[frame_index]->write_to_buffer(&ubo);
+                ubo_buffers[frame_index]->flush();
+                
+                // render
                 vke_renderer.begin_swap_chain_render_pass(command_buffer);
-                simple_render_system.render_game_objects(command_buffer, game_objects, camera);
+                simple_render_system.render_game_objects(frame_info, game_objects);
                 vke_renderer.end_swap_chain_render_pass(command_buffer);
                 vke_renderer.end_frame();
             }
+<<<<<<< HEAD
             //std::cout << "FPS: " << 1 / frame_time << std::endl;
+=======
+            // std::cout << "FPS: " << 1 / frame_time << std::endl;
+>>>>>>> main
         }
 
         vkDeviceWaitIdle(vke_device.device());
     }
 
-std::unique_ptr<VkeModel> create_cube_model(VkeDevice& device, glm::vec3 offset) {
-  std::vector<VkeModel::Vertex> vertices{
- 
-      // left face (white)
-      {{-.5f, -.5f, -.5f}, {.9f, .9f, .9f}},
-      {{-.5f, .5f, .5f}, {.9f, .9f, .9f}},
-      {{-.5f, -.5f, .5f}, {.9f, .9f, .9f}},
-      {{-.5f, -.5f, -.5f}, {.9f, .9f, .9f}},
-      {{-.5f, .5f, -.5f}, {.9f, .9f, .9f}},
-      {{-.5f, .5f, .5f}, {.9f, .9f, .9f}},
- 
-      // right face (yellow)
-      {{.5f, -.5f, -.5f}, {.8f, .8f, .1f}},
-      {{.5f, .5f, .5f}, {.8f, .8f, .1f}},
-      {{.5f, -.5f, .5f}, {.8f, .8f, .1f}},
-      {{.5f, -.5f, -.5f}, {.8f, .8f, .1f}},
-      {{.5f, .5f, -.5f}, {.8f, .8f, .1f}},
-      {{.5f, .5f, .5f}, {.8f, .8f, .1f}},
- 
-      // top face (orange, remember y axis points down)
-      {{-.5f, -.5f, -.5f}, {.9f, .6f, .1f}},
-      {{.5f, -.5f, .5f}, {.9f, .6f, .1f}},
-      {{-.5f, -.5f, .5f}, {.9f, .6f, .1f}},
-      {{-.5f, -.5f, -.5f}, {.9f, .6f, .1f}},
-      {{.5f, -.5f, -.5f}, {.9f, .6f, .1f}},
-      {{.5f, -.5f, .5f}, {.9f, .6f, .1f}},
- 
-      // bottom face (red)
-      {{-.5f, .5f, -.5f}, {.8f, .1f, .1f}},
-      {{.5f, .5f, .5f}, {.8f, .1f, .1f}},
-      {{-.5f, .5f, .5f}, {.8f, .1f, .1f}},
-      {{-.5f, .5f, -.5f}, {.8f, .1f, .1f}},
-      {{.5f, .5f, -.5f}, {.8f, .1f, .1f}},
-      {{.5f, .5f, .5f}, {.8f, .1f, .1f}},
- 
-      // nose face (blue)
-      {{-.5f, -.5f, 0.5f}, {.1f, .1f, .8f}},
-      {{.5f, .5f, 0.5f}, {.1f, .1f, .8f}},
-      {{-.5f, .5f, 0.5f}, {.1f, .1f, .8f}},
-      {{-.5f, -.5f, 0.5f}, {.1f, .1f, .8f}},
-      {{.5f, -.5f, 0.5f}, {.1f, .1f, .8f}},
-      {{.5f, .5f, 0.5f}, {.1f, .1f, .8f}},
- 
-      // tail face (green)
-      {{-.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
-      {{.5f, .5f, -0.5f}, {.1f, .8f, .1f}},
-      {{-.5f, .5f, -0.5f}, {.1f, .8f, .1f}},
-      {{-.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
-      {{.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
-      {{.5f, .5f, -0.5f}, {.1f, .8f, .1f}},
- 
-  };
-  for (auto& v : vertices) {
-    v.position += offset;
-  }
-  return std::make_unique<VkeModel>(device, vertices);
-}
-
     void FirstApp::load_game_objects() {
+<<<<<<< HEAD
         Chunk ch;
         std::shared_ptr<VkeModel> vke_model = std::make_unique<VkeModel>(vke_device, ch.get_triangles()); // create_cube_model(vke_device, {.0f, .0f, .0f});
 
@@ -152,5 +134,15 @@ std::unique_ptr<VkeModel> create_cube_model(VkeDevice& device, glm::vec3 offset)
         // cube2.transform.scale = {0.3f, 0.3f, 0.3f};
 
         // game_objects.push_back(std::move(cube2));
+=======
+        std::shared_ptr<VkeModel> vke_model = VkeModel::create_model_from_file(vke_device, "../assets/flat_vase.obj");
+
+        auto game_obj = VkeGameObject::create_game_object();
+        game_obj.model = vke_model;
+        game_obj.transform.translation = {.0f, .5f, 2.5f};
+        game_obj.transform.scale = glm::vec3(3.f);
+
+        game_objects.push_back(std::move(game_obj));
+>>>>>>> main
     }
 }

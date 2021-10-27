@@ -8,7 +8,25 @@ set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS};"-g")
 
 # sources
 include_directories(${PROJECT_SOURCE_DIR})
+<<<<<<< HEAD
 add_executable(vulkantest ./src/main.cpp ./src/vke_window.cpp ./src/first_app.cpp ./src/vke_pipeline.cpp ./src/vke_device.cpp ./src/vke_swap_chain.cpp ./src/vke_model.cpp ./src/vke_game_object.cpp ./src/vke_renderer.cpp ./src/vke_simple_render_system.cpp ./src/vke_camera.cpp ./src/keyboard_movement_controller.cpp ./src/Chunk.cpp)
+=======
+add_executable(vulkantest 
+./src/main.cpp 
+./src/vke_window.cpp 
+./src/first_app.cpp 
+./src/vke_pipeline.cpp 
+./src/vke_device.cpp 
+./src/vke_swap_chain.cpp 
+./src/vke_model.cpp 
+./src/vke_game_object.cpp 
+./src/vke_renderer.cpp 
+./src/vke_simple_render_system.cpp 
+./src/vke_camera.cpp 
+./src/vke_buffer.cpp
+./src/keyboard_movement_controller.cpp
+)
+>>>>>>> main
 
 # Linker dependencies
 target_link_libraries(vulkantest -lglfw)
@@ -19,6 +37,9 @@ target_link_libraries(vulkantest -lX11)
 target_link_libraries(vulkantest -lXxf86vm)
 target_link_libraries(vulkantest -lXrandr)
 target_link_libraries(vulkantest -lXi)
+
+# own dependencies
+include_directories("./libs/tinyobjloader/")
 
 # shader compilation
 add_custom_target(shader_compilation ALL ../compile_shaders.sh)
