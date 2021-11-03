@@ -104,37 +104,13 @@ namespace vke {
                 vke_renderer.end_swap_chain_render_pass(command_buffer);
                 vke_renderer.end_frame();
             }
-<<<<<<< HEAD
-            //std::cout << "FPS: " << 1 / frame_time << std::endl;
-=======
             // std::cout << "FPS: " << 1 / frame_time << std::endl;
->>>>>>> main
         }
 
         vkDeviceWaitIdle(vke_device.device());
     }
 
     void FirstApp::load_game_objects() {
-<<<<<<< HEAD
-        Chunk ch;
-        std::shared_ptr<VkeModel> vke_model = std::make_unique<VkeModel>(vke_device, ch.get_triangles()); // create_cube_model(vke_device, {.0f, .0f, .0f});
-
-        auto cube = VkeGameObject::create_game_object();
-        cube.model = vke_model;
-        cube.transform.translation = {.0f, .0f, 0.5f};
-        cube.transform.scale = {0.5f, 0.5f, 0.5f};
-
-        game_objects.push_back(std::move(cube));
-
-        // std::shared_ptr<VkeModel> vke_model2 = create_cube_model(vke_device, {.0f, .0f, .0f});
-
-        // auto cube2 = VkeGameObject::create_game_object();
-        // cube2.model = vke_model2;
-        // cube2.transform.translation = {.0f, .0f, .0f};
-        // cube2.transform.scale = {0.3f, 0.3f, 0.3f};
-
-        // game_objects.push_back(std::move(cube2));
-=======
         std::shared_ptr<VkeModel> vke_model = VkeModel::create_model_from_file(vke_device, "../assets/flat_vase.obj");
 
         auto game_obj = VkeGameObject::create_game_object();
@@ -143,6 +119,5 @@ namespace vke {
         game_obj.transform.scale = glm::vec3(3.f);
 
         game_objects.push_back(std::move(game_obj));
->>>>>>> main
     }
 }
