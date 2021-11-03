@@ -35,6 +35,9 @@
 assets/
 libs/
 build/
+.cache/
+.vscode/
+.docs/
 
 # compiled shaders
 *.spv
