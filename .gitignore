@@ -35,6 +35,8 @@
 assets/
 libs/
 build/
+.cache/
+
 
 # compiled shaders
 *.spv
