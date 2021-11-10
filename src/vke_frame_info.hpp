@@ -12,6 +12,7 @@ namespace vke {
         float frame_time;
         VkCommandBuffer command_buffer;
         VkeCamera &camera;
+        VkDescriptorSet global_descriptor_set;
     };
 }
 

@@ -24,10 +24,14 @@ namespace vke {
 
     struct GlobalUBO {
         glm::mat4 projection_view{1.f};
-        glm::vec3 light_direction = glm::normalize(glm::vec3{1.f, -3.f, -1.f});
+        glm::vec3 light_direction = glm::normalize(glm::vec3{1.f, -2.f, -1.f});
     };
 
     FirstApp::FirstApp() {
+        global_pool = VkeDescriptorPool::Builder(vke_device)
+            .set_max_sets(VkeSwapChain::MAX_FRAMES_IN_FLIGHT)
+            .add_pool_size(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VkeSwapChain::MAX_FRAMES_IN_FLIGHT)
+            .build();
         load_game_objects();
     }
 
@@ -49,9 +53,28 @@ namespace vke {
             );
             ubo_buffers[i]->map();
 
-        }     
+        }    
 
-        VkeSimpleRenderSystem simple_render_system{vke_device, vke_renderer.get_swap_chain_render_pass()};
+        
+        auto global_set_layout = VkeDescriptorSetLayout::Builder(vke_device)
+            .add_binding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT)
+            .build();
+
+        
+        std::vector<VkDescriptorSet> global_descriptor_sets(VkeSwapChain::MAX_FRAMES_IN_FLIGHT);
+        for(int i = 0; i < global_descriptor_sets.size(); i++) {
+            auto buffer_info = ubo_buffers[i] -> descriptor_info();
+            VkeDescriptorWriter(*global_set_layout, *global_pool)
+                .write_buffer(0, &buffer_info)
+                .build(global_descriptor_sets[i]);
+        }
+
+        VkeSimpleRenderSystem simple_render_system{
+            vke_device, 
+            vke_renderer.get_swap_chain_render_pass(), 
+            global_set_layout->get_descriptor_set_layout()
+        };
+
         VkeCamera camera{};
         camera.set_view_direction(glm::vec3(0.f), glm::vec3(0.5f, 0.f, 1.f));
         camera.set_view_target(glm::vec3(-1.f, -2.f, -2.f), glm::vec3(0.f, 0.f, 2.5f));
@@ -88,7 +111,8 @@ namespace vke {
                     frame_index,
                     frame_time,
                     command_buffer,
-                    camera
+                    camera,
+                    global_descriptor_sets[frame_index]
                 };
 
                 // update

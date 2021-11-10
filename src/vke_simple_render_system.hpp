@@ -14,7 +14,7 @@
     namespace vke {
         class VkeSimpleRenderSystem {
             public:
-            VkeSimpleRenderSystem(VkeDevice &device, VkRenderPass render_pass);
+            VkeSimpleRenderSystem(VkeDevice &device, VkRenderPass render_pass, VkDescriptorSetLayout global_set_layout);
             ~VkeSimpleRenderSystem();
 
             VkeSimpleRenderSystem(const VkeSimpleRenderSystem&) = delete;
@@ -23,7 +23,7 @@
             void render_game_objects(FrameInfo frame_info, std::vector<VkeGameObject> &game_objects);
             
             private:
-            void create_pipeline_layout();
+            void create_pipeline_layout(VkDescriptorSetLayout global_set_layout);
             void create_pipeline(VkRenderPass render_pass);
             
 

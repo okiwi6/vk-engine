@@ -21,6 +21,7 @@ add_executable(vulkantest
 ./src/vke_simple_render_system.cpp 
 ./src/vke_camera.cpp 
 ./src/vke_buffer.cpp
+./src/vke_descriptors.cpp
 ./src/keyboard_movement_controller.cpp
 )
 

@@ -1,6 +1,7 @@
 #ifndef first_app_
     #define first_app_
 
+    #include "vke_descriptors.hpp"
     #include "vke_window.hpp"
     #include "vke_device.hpp"
     #include "vke_game_object.hpp"
@@ -30,6 +31,8 @@
             VkeDevice vke_device{vke_window};
             VkeRenderer vke_renderer{vke_window, vke_device};
 
+            // order of declaration is important! global_pool needs to be destroyed after vke_device
+            std::unique_ptr<VkeDescriptorPool> global_pool{};
             std::vector<VkeGameObject> game_objects;
         };
     }
