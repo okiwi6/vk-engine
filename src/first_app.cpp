@@ -24,7 +24,9 @@ namespace vke {
 
     struct GlobalUBO {
         glm::mat4 projection_view{1.f};
-        glm::vec3 light_direction = glm::normalize(glm::vec3{1.f, -2.f, -1.f});
+        glm::vec4 ambient_light_color{1.f, 1.f, 1.f, .02f};
+        glm::vec3 light_position{-1.f};
+        alignas(16) glm::vec4 light_color{1.f}; //(r,g,b,intensity)
     };
 
     FirstApp::FirstApp() {
@@ -80,6 +82,7 @@ namespace vke {
         camera.set_view_target(glm::vec3(-1.f, -2.f, -2.f), glm::vec3(0.f, 0.f, 2.5f));
 
         auto viewer_object = VkeGameObject::create_game_object();
+        viewer_object.transform.translation.z = -2.5f;
         KeyboardMovementController camera_controller{};
 
         auto current_time = std::chrono::high_resolution_clock::now();
@@ -103,7 +106,8 @@ namespace vke {
             // camera.set_orthographic_projection(-aspect, aspect, -1, 1, -1, 1);
 
             // perspective view
-            camera.set_perspective_projection(glm::radians(50.f), aspect, 0.1f, 10.f);
+            camera.set_perspective_projection(glm::radians(50.f), aspect, 0.1f, 250.f);
+            camera.set_perspective_projection(glm::radians(50.f), aspect, 0.1f, 250.f);
 
             if (VkCommandBuffer command_buffer = vke_renderer.begin_frame()) {
                 int frame_index = vke_renderer.get_frame_index();
@@ -138,7 +142,25 @@ namespace vke {
 
         auto game_obj = VkeGameObject::create_game_object();
         game_obj.model = vke_model;
-        game_obj.transform.translation = {.0f, .5f, 2.5f};
+        game_obj.transform.translation = {-.5f, .5f, 0.f};
+        game_obj.transform.scale = glm::vec3(3.f);
+
+        game_objects.push_back(std::move(game_obj));
+
+        vke_model = VkeModel::create_model_from_file(vke_device, "../assets/smooth_vase.obj");
+
+        game_obj = VkeGameObject::create_game_object();
+        game_obj.model = vke_model;
+        game_obj.transform.translation = {.5f, .5f, 0.f};
+        game_obj.transform.scale = glm::vec3(3.f);
+
+        game_objects.push_back(std::move(game_obj));
+
+        vke_model = VkeModel::create_model_from_file(vke_device, "../assets/quad.obj");
+
+        auto game_obj2 = VkeGameObject::create_game_object();
+        game_obj.model = vke_model;
+        game_obj.transform.translation = {.0f, .5f, 0.f};
         game_obj.transform.scale = glm::vec3(3.f);
 
         game_objects.push_back(std::move(game_obj));
