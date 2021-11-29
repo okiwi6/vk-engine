@@ -70,7 +70,7 @@ namespace vke {
         );
     }
 
-    void VkeSimpleRenderSystem::render_game_objects(FrameInfo frame_info, std::vector<VkeGameObject> &game_objects) {
+    void VkeSimpleRenderSystem::render_game_objects(FrameInfo frame_info) {
         vke_pipeline -> bind(frame_info.command_buffer);
 
         // rebind everything from beginning
@@ -84,7 +84,10 @@ namespace vke {
             nullptr
         );
 
-        for(auto& obj : game_objects) {
+        for(auto& kv : frame_info.game_objects) {
+            auto& obj = kv.second;
+            if(obj.model == nullptr) continue;
+
             SimplePushConstantData push{};
             
             push.model_matrix = obj.transform.mat4();

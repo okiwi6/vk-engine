@@ -6,6 +6,7 @@
 
     //std
     #include <memory>
+    #include <unordered_map>
 
     namespace vke {
 
@@ -37,6 +38,7 @@
         class VkeGameObject {
             public:
             using id_t = unsigned int;
+            using Map = std::unordered_map<id_t, VkeGameObject>;
 
             static VkeGameObject create_game_object() {
                 static id_t current_id = 0;

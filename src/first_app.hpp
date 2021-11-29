@@ -33,7 +33,7 @@
 
             // order of declaration is important! global_pool needs to be destroyed after vke_device
             std::unique_ptr<VkeDescriptorPool> global_pool{};
-            std::vector<VkeGameObject> game_objects;
+            VkeGameObject::Map game_objects;
         };
     }
 

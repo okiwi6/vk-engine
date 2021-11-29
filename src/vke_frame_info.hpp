@@ -2,6 +2,7 @@
     #define vke_frame_info_
 
 #include "vke_camera.hpp"
+#include "vke_game_object.hpp"
 
 // lib
 #include <vulkan/vulkan.hpp>
@@ -13,6 +14,7 @@ namespace vke {
         VkCommandBuffer command_buffer;
         VkeCamera &camera;
         VkDescriptorSet global_descriptor_set;
+        VkeGameObject::Map &game_objects;
     };
 }
 

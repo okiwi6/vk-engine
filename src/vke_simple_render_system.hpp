@@ -20,7 +20,7 @@
             VkeSimpleRenderSystem(const VkeSimpleRenderSystem&) = delete;
             VkeSimpleRenderSystem& operator=(const VkeSimpleRenderSystem&) = delete;
 
-            void render_game_objects(FrameInfo frame_info, std::vector<VkeGameObject> &game_objects);
+            void render_game_objects(FrameInfo frame_info);
             
             private:
             void create_pipeline_layout(VkDescriptorSetLayout global_set_layout);

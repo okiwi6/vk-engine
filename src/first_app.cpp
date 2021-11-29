@@ -59,7 +59,7 @@ namespace vke {
 
         
         auto global_set_layout = VkeDescriptorSetLayout::Builder(vke_device)
-            .add_binding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT)
+            .add_binding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS)
             .build();
 
         
@@ -116,7 +116,8 @@ namespace vke {
                     frame_time,
                     command_buffer,
                     camera,
-                    global_descriptor_sets[frame_index]
+                    global_descriptor_sets[frame_index],
+                    game_objects
                 };
 
                 // update
@@ -127,7 +128,7 @@ namespace vke {
                 
                 // render
                 vke_renderer.begin_swap_chain_render_pass(command_buffer);
-                simple_render_system.render_game_objects(frame_info, game_objects);
+                simple_render_system.render_game_objects(frame_info);
                 vke_renderer.end_swap_chain_render_pass(command_buffer);
                 vke_renderer.end_frame();
             }
@@ -145,7 +146,7 @@ namespace vke {
         game_obj.transform.translation = {-.5f, .5f, 0.f};
         game_obj.transform.scale = glm::vec3(3.f);
 
-        game_objects.push_back(std::move(game_obj));
+        game_objects.emplace(game_obj.get_id(), std::move(game_obj));
 
         vke_model = VkeModel::create_model_from_file(vke_device, "../assets/smooth_vase.obj");
 
@@ -154,15 +155,15 @@ namespace vke {
         game_obj.transform.translation = {.5f, .5f, 0.f};
         game_obj.transform.scale = glm::vec3(3.f);
 
-        game_objects.push_back(std::move(game_obj));
+        game_objects.emplace(game_obj.get_id(), std::move(game_obj));
 
         vke_model = VkeModel::create_model_from_file(vke_device, "../assets/quad.obj");
 
-        auto game_obj2 = VkeGameObject::create_game_object();
+        game_obj = VkeGameObject::create_game_object();
         game_obj.model = vke_model;
         game_obj.transform.translation = {.0f, .5f, 0.f};
         game_obj.transform.scale = glm::vec3(3.f);
 
-        game_objects.push_back(std::move(game_obj));
+        game_objects.emplace(game_obj.get_id(), std::move(game_obj));
     }
 }
